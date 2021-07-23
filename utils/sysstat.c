@@ -340,7 +340,6 @@ int main(int argc, char **argv) {
     double cpu_used = ns.cpu_used - state.cpu_used;
     double cpu_all = ns.cpu_all - state.cpu_all;
     cpu = lrint(cpu_used * 100.0 / cpu_all);
-    double age = (ns.date - 596894400) / 365.25 / 24 / 3600;
     tm = localtime(&ns.date);
     snprintf(buf, BS,
              "[%s] "
@@ -348,9 +347,8 @@ int main(int argc, char **argv) {
              "%5s mem "
              "%5s ↑ %5s ↓ "
              "%3d%% cpu "
-             "%0.3fy "
              "%04d-%02d-%02d %02d:%02d",
-             hostname, bat, vol, mem, up, down, cpu, age, tm->tm_year + 1900,
+             hostname, bat, vol, mem, up, down, cpu, tm->tm_year + 1900,
              tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min);
     int len = strlen(buf);
     if (strcmp(config.output, "-") != 0) {
