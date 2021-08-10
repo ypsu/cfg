@@ -88,10 +88,12 @@ setfont -f /usr/share/kbd/consolefonts/ter-v12n.psf.gz
 
 log Bringing up networking
 logexec ifconfig lo up
-eperipi logexec ifconfig eth0 up
+eper logexec ifconfig eth0 up
 eper logexec ifconfig eth0 192.168.1.11 netmask 255.255.255.0 broadcast 192.168.1.255
-ipi logexec ifconfig eth0 192.168.1.12 netmask 255.255.255.0 broadcast 192.168.1.255
-eperipi logexec route add default gw 192.168.1.1 eth0
+eper logexec route add default gw 192.168.1.1 eth0
+ipi wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
+ipi logexec ifconfig wlan0 192.168.1.12 netmask 255.255.255.0 broadcast 192.168.1.255
+ipi logexec route add default gw 192.168.1.1 wlan0
 paks ifconfig eno1 up
 paks logexec ifconfig eno1 192.168.1.13 netmask 255.255.255.0 broadcast 192.168.1.255
 paks logexec route add default gw 192.168.1.1 eno1
