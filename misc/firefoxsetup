@@ -1,0 +1,19 @@
+#!/bin/bash
+# installs my custom settings in all the firefox profiles.
+if test $# -gt 0 ; then
+  dirs="$@"
+else
+  dirs="$(find $HOME/.mozilla/firefox/* -maxdepth 0 -type d)"
+fi
+
+for dir in $dirs; do
+  echo processing $dir
+  if ! test -h $dir/user.js; then
+    ln -sv "$(dirname $(realpath $0))/firefoxuser.js" $dir/user.js
+  fi
+  src="$(dirname $(realpath $0))/firefoxsearch.json.mozlz4"
+  dst=$dir/search.json.mozlz4
+  if ! cmp -s $src $dst; then
+    cp -vi $src $dst
+  fi
+done
