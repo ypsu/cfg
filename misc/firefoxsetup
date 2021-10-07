@@ -3,7 +3,7 @@
 if test $# -gt 0 ; then
   dirs="$@"
 else
-  dirs="$(find $HOME/.mozilla/firefox/* -maxdepth 0 -type d)"
+  dirs="$(find $HOME/.mozilla/firefox/* -maxdepth 0 -type d -iname '*.*')"
 fi
 
 for dir in $dirs; do
