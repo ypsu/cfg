@@ -1,15 +1,15 @@
-// Command basimark can convert between markdown and HTML representations.
-// Does nothing if it detects that the input is the right format already.
+// command basimark can convert between markdown and html representations.
+// does nothing if it detects that the input is the right format already.
 //
-// It can also watch a file and continuously serve it over the web.
-// In web mode while basimark polls the file, the web client uses blocking connections
+// it can also watch a file and continuously serve it over the web.
+// in web mode while basimark polls the file, the web client uses blocking connections
 // to keep the traffic to minimum.
-// It's implemented by two handlers:
+// it's implemented by two handlers:
 // /preview (meant for the user) and /content (meant as an implementation detail).
-// The /content has a timestamp on the first line
+// the /content has a timestamp on the first line
 // which when passed as a ts parameter to /content,
 // the handler will then block until the next update in the file.
-// Rest of the /content handler is the generated HTML.
+// rest of the /content handler is the generated html.
 package main
 
 import (
@@ -50,25 +50,25 @@ func close(output *bytes.Buffer, m mode) {
 }
 
 // autolinks is something like "doc|go|groups|oncall|sheets|who".
-// Those will be autolinkified if they are followed by a slash.
-// Leave it empty if no autolinkification is needed.
+// those will be autolinkified if they are followed by a slash.
+// leave it empty if no autolinkification is needed.
 func toHTML(inputbuf []byte, autolinks []byte) []byte {
 	output := &bytes.Buffer{}
 
-	// Escape HTML characters.
+	// escape html characters.
 	input := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&#039;").Replace(string(inputbuf))
 
-	// Linkify links.
+	// linkify links.
 	if len(autolinks) == 0 {
 		autolinks = []byte("__autolink_placeholder__")
 	}
 	re := regexp.MustCompile(`\b((http(s)?://([-.a-z0-9]+)/?)|(` + string(autolinks) + `)/)(\S*)?\b`)
 	input = re.ReplaceAllString(input, "<a href='http$3://$4$5/$6'>$0</a>")
 
-	// Add a some styling.
+	// add a some styling.
 	output.WriteString("<div style=max-width:50em>")
 
-	// HTMLize the input markdown.
+	// htmlize the input markdown.
 	m := noneMode
 	for ln, line := range strings.Split(input, "\n") {
 		if len(line) == 0 {
@@ -121,19 +121,19 @@ func toHTML(inputbuf []byte, autolinks []byte) []byte {
 }
 
 func toMarkdown(inputbuf []byte) []byte {
-	// Uncomment all hidden markers (- for lists, > for quotes).
+	// uncomment all hidden markers (- for lists, > for quotes).
 	re := regexp.MustCompile("<!-- ([^ ]*) -->")
 	outputbuf := re.ReplaceAll(inputbuf, []byte("$1 "))
 
-	// Remove HTML tags.
+	// remove html tags.
 	re = regexp.MustCompile("<[^>]*>")
 	outputbuf = re.ReplaceAll(outputbuf, []byte(""))
 
-	// Remove spurious newlines.
+	// remove spurious newlines.
 	re = regexp.MustCompile("\n\n\n+")
 	outputbuf = re.ReplaceAll(append(bytes.TrimSpace(outputbuf), '\n'), []byte("\n\n"))
 
-	// Restore escaped characters.
+	// restore escaped characters.
 	output := strings.NewReplacer("&lt;", "<", "&gt;", ">", "&quot;", "\"", "&#039;", "'").Replace(string(outputbuf))
 	output = strings.ReplaceAll(output, "&amp;", "&")
 
@@ -181,16 +181,16 @@ func handleContent(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	// Set up flags.
-	pFlag := flag.Int("p", 8080, "Port to use for the web server for -f and -t flags. The content will be on /preview.")
-	rFlag := flag.Bool("r", false, "Restore the HTML back to the original text.")
-	fFlag := flag.String("f", "", "File to watch and serve via web.")
-	tFlag := flag.String("t", "", "Todo item to watch from my todo list.")
+	// set up flags.
+	pFlag := flag.Int("p", 8080, "port to use for the web server for -f and -t flags. the content will be on /preview.")
+	rFlag := flag.Bool("r", false, "restore the html back to the original text.")
+	fFlag := flag.String("f", "", "file to watch and serve via web.")
+	tFlag := flag.String("t", "", "todo item to watch from my todo list.")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Usage: basimark <input >output")
 		fmt.Fprintln(os.Stderr, "input is markdown, output is html unless reversed with the -r flag.")
 		fmt.Fprintln(os.Stderr, "-f and -t start a webserver instead.")
-		fmt.Fprintln(os.Stderr, "Flags:")
+		fmt.Fprintln(os.Stderr, "flags:")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -198,18 +198,18 @@ func main() {
 		*fFlag = os.Getenv("HOME") + "/todo"
 	}
 
-	// Read autolinks if available.
+	// read autolinks if available.
 	autolinks, _ := ioutil.ReadFile(os.Getenv("HOME") + "/.autolinks")
 	autolinks = bytes.TrimSpace(autolinks)
 
 	if len(*fFlag) == 0 {
-		// Read input buffers.
+		// read input buffers.
 		inputbuf, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// Run the conversion.
+		// run the conversion.
 		outbuf := inputbuf
 		isHTML := bytes.HasPrefix(inputbuf, []byte("<"))
 		if *rFlag && isHTML {
@@ -221,14 +221,14 @@ func main() {
 		return
 	}
 
-	// Webserver stuff from now on.
+	// webserver stuff from now on.
 	http.HandleFunc("/preview", handlePreview)
 	http.HandleFunc("/content", handleContent)
 	addr := fmt.Sprintf(":%d", *pFlag)
 	log.Printf("preview available at %s/preview", addr)
 	go func() { log.Fatal(http.ListenAndServe(addr, nil)) }()
 
-	// Serve the content request in this file while polling the file
+	// serve the content request in this file while polling the file
 	// and unblocking the waiting requests if there are some.
 	var lastMod time.Time
 	var content []byte
@@ -297,7 +297,7 @@ func main() {
 						if r.req.Context().Err() != nil {
 							foundStaleConn = true
 							r.w.WriteHeader(408)
-							fmt.Fprintln(r.w, "Client cancelled the request?")
+							fmt.Fprintln(r.w, "client cancelled the request?")
 							r.done <- true
 							waitingRequests[i] = req
 							break
@@ -305,7 +305,7 @@ func main() {
 					}
 					if !foundStaleConn {
 						req.w.WriteHeader(503)
-						fmt.Fprintln(req.w, "Too many pending requests.")
+						fmt.Fprintln(req.w, "too many pending requests.")
 						req.done <- true
 					}
 				} else {
@@ -313,7 +313,7 @@ func main() {
 				}
 			} else {
 				req.w.WriteHeader(400)
-				fmt.Fprintln(req.w, "Invalid ts (timestamp) value.")
+				fmt.Fprintln(req.w, "invalid ts (timestamp) value.")
 				req.done <- true
 			}
 		}
