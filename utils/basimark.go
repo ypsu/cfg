@@ -39,7 +39,7 @@ const (
 func close(output *bytes.Buffer, m mode) {
 	switch m {
 	case blockquoteMode:
-		output.WriteString("</blockquote>")
+		output.WriteString("</p></blockquote>")
 	case pMode:
 		output.WriteString("</p>")
 	case preMode:
@@ -100,11 +100,13 @@ func toHTML(inputbuf []byte, autolinks []byte) []byte {
 		} else if strings.HasPrefix(line, "&gt; ") {
 			if m == noneMode {
 				m = blockquoteMode
-				output.WriteString("<blockquote style='border-left:solid 0.25em darkgray;padding:0 0.5em;margin:1em 0'>")
+				output.WriteString("<blockquote style='border-left:solid 0.25em darkgray;padding:0 0.5em;margin:1em 0'><p>")
 				line = "<span style=display:none>&gt; </span>" + line[5:]
 			} else if m == blockquoteMode {
 				line = "<!-- &gt; -->" + line[5:]
 			}
+		} else if m == blockquoteMode && line == "&gt;" {
+			line = "</p><p><span style=display:none>&gt;</span>"
 		} else {
 			if m == noneMode {
 				m = pMode
