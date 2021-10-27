@@ -247,9 +247,20 @@ function SetCPPCommands()
 	com! LT 1,$d | r ~/.template.cpp | 1d | 33
 endfunction
 
+" Keys for standalone Go programs.
+" F5 - build and run
+" F6 - build
+" F7 - build, set a permanent breakpoint and run in the debugger
+function SetGoCommands()
+	map <F5> :!'%:p:r' <CR>
+	map <F6> :!go build '%:p' <CR>
+	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
+endfunction
+
 " Set my beloved keys.
 autocmd BufEnter *.c call SetCCommands()
 autocmd BufEnter *.h,*.H,*.hxx,*.hpp,*.C,*.cpp,*.cxx,*.cc,*.cs call SetCPPCommands()
+autocmd BufEnter *.go call SetGoCommands()
 
 " Moving back and forth between lines of same or lower indentation.
 nnoremap <silent> [l :call NextIndent(0, 0, 0, 1)<CR>
