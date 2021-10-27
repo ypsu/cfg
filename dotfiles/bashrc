@@ -6,7 +6,7 @@ PS1='\[\e[0m\]$ '
 
 export EDITOR="vim -X -c 'set spell'"
 export LESS="-S -c --mouse --wheel-lines=3"
-export PATH="$HOME/.bin:/root/.sbin/:$PATH"
+export PATH="$HOME/.bin:/root/.sbin/:$PATH:$HOME/.local/bin"
 export LESSCHARSET='utf-8'
 
 alias ls='ls --color=auto'
