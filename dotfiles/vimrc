@@ -170,9 +170,11 @@ map <Leader><F2> ggyG``zz:call system('cat \| tmux load-buffer -; t2x', @")<CR>
 map <Leader>w ggyG``zz:call system('cat \| tmux load-buffer -; t2x', @")<CR>
 " Leader-F3 - Reload all
 map <Leader><F3> :bufdo set eventignore= \| e <CR>
-" F4 - Show terminal
+" F4, \a - Show terminal
 map <F4> :!exit <CR>
 vmap <F4> <Esc><F4>gv
+map <Leader>a :!exit <CR>
+vmap <Leader>a <Esc><F4>gv
 
 " Paste from X11 clipboard/tmux buffer.
 map <Leader>p :let @" = system('x2t; tmux save-buffer -')<CR>p
@@ -215,6 +217,7 @@ map <Leader>u <plug>NERDCommenterUncomment
 " F7 - set a permanent breakpoint and run in the debugger
 " F8 - run via valgrind
 " <Leader>F8 - check the code's coverage
+" \1, \2, \3 - build, run, debug
 function SetCCommands()
 	map <F5> :!./a.out <CR>
 	map <Leader><F5> :call writefile(["r", "bt"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
@@ -223,6 +226,10 @@ function SetCCommands()
 	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
 	map <F8> :!valgrind ./a.out <CR>
 	map <Leader><F8> :!gcc -std=c99 -g -fprofile-arcs -ftest-coverage '%:p' -lm -lpthread -lrt; ./a.out; gcov -a -b -c '%:p'; vim '%:p.gcov'; rm %:p:r.{gcda,gcno} *.gcov; rm a.out <CR>
+
+	map <Leader>1 :!gcc -fstack-protector-all -std=c99 -lm -Wall -W -g3 '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader>2 :!./a.out <CR>
+	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
 endfunction
 
 " Keys for standalone C++ programs.
@@ -235,6 +242,7 @@ endfunction
 " <Leader>F8 - check the code's coverage
 " 
 " :LT - load my CPP template
+" \1, \2, \3 - build, run, debug
 function SetCPPCommands()
 	map <F5> :!./a.out <CR>
 	map <Leader><F5> :call writefile(["r", "bt"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
@@ -245,16 +253,26 @@ function SetCPPCommands()
 	map <Leader><F8> :!g++ -std=c++11 -fprofile-arcs -ftest-coverage '%:p'; ./a.out; gcov -a -b -c '%:p'; vim '%:p.gcov'; rm %:p:r.{gcda,gcno} *.gcov; rm a.out <CR>
 
 	com! LT 1,$d | r ~/.template.cpp | 1d | 33
+	map <Leader>1 :!g++ -std=c++11 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader>2 :!./a.out <CR>
+	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
 endfunction
 
 " Keys for standalone Go programs.
 " F5 - build and run
 " F6 - build
 " F7 - build, set a permanent breakpoint and run in the debugger
+" \1, \2, \3 - build, run, debug
+" :LT - load my Go template
 function SetGoCommands()
 	map <F5> :!'%:p:r' <CR>
 	map <F6> :!go build '%:p' <CR>
 	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
+
+	com! LT 1,$d | r ~/.template.go | 1d | 11
+	map <Leader>1 :!go build '%:p' <CR>
+	map <Leader>2 :!'%:p:r' <CR>
+	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
 endfunction
 
 " Set my beloved keys.
