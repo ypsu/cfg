@@ -42,13 +42,6 @@ case "$choice" in
 		fi
 		tmux rename-window "$name"
 		;;
-	g)
-		echo -n $(~/.d/gp-gui/main_loop) | \
-			tmux load-buffer -
-		tmux last-pane
-		echo Copying to X11...
-		t2x
-		;;
 	\`)
 		rcmd_cancel
 		;;
