@@ -187,13 +187,30 @@ func main() {
 	fFlag := flag.String("f", "", "file to watch and serve via web.")
 	tFlag := flag.String("t", "", "todo item to watch from my todo list.")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: basimark <input >output")
+		fmt.Fprintln(os.Stderr, "bm: basic markdown is a tool that transforms or serves markdown text.")
+		fmt.Fprintln(os.Stderr, "usage 1: bm <input >output")
+		fmt.Fprintln(os.Stderr, "usage 2: bm [file or todo item]")
 		fmt.Fprintln(os.Stderr, "input is markdown, output is html unless reversed with the -r flag.")
-		fmt.Fprintln(os.Stderr, "-f and -t start a webserver instead.")
+		fmt.Fprintln(os.Stderr, "filename/todoname, -f and -t start a webserver instead.")
 		fmt.Fprintln(os.Stderr, "flags:")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	// figure out what the user wanted.
+	if len(flag.Args()) > 0 {
+		if len(*tFlag) > 0 || len(*fFlag) > 0 || len(flag.Args()) > 2 {
+			fmt.Fprintln(os.Stderr, "error: incorrect usage.")
+			flag.Usage()
+			return
+		}
+		a := flag.Args()[0]
+		if _, err := os.Stat(a); err == nil {
+			*fFlag = a
+		} else {
+			*tFlag = a
+		}
+	}
 	if len(*tFlag) > 0 && len(*fFlag) == 0 {
 		*fFlag = os.Getenv("HOME") + "/todo"
 	}
