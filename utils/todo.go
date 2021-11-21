@@ -10,6 +10,7 @@ import (
 	"log"
 	"mime/quotedprintable"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -86,6 +87,13 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 	now := time.Now().Format("2006-01-02.15:04:05")
+
+	// invoke the flashcard app.
+	cmd := exec.Command("flashcard")
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("failed to run flashcard: %v\n", err)
+	}
 
 	// process the .rems file.
 	rems := []string{}
