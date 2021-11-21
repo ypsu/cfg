@@ -132,6 +132,11 @@ imap <Down> <C-O>gj
 imap <Home> <C-O>g0
 imap <End> <C-O>g$
 
+" disable modifyOtherKeys mode otherwise some keymappings (like c-backspace)
+" work diffently between tmux and raw xterm.
+let &t_TI = ""
+let &t_TE = ""
+
 " Erasing backwards should be similar to readline
 imap <C-w> <C-\><C-o>dB
 imap <C-h> <C-\><C-o>db
