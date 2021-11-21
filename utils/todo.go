@@ -23,8 +23,8 @@ func usage() {
 	fmt.Fprintln(out, ``)
 	fmt.Fprintln(out, `todo entries have the format "#name summary [blockers]"`)
 	fmt.Fprintln(out, `blockers can be the following:`)
-	fmt.Fprintln(out, `- YYYY-MM-DD.HH:MM:SS: blocks on date, any prefix works.`)
-	fmt.Fprintln(out, `- #name: task is blocked until #name exists.`)
+	fmt.Fprintln(out, `- b:YYYY-MM-DD.HH:MM:SS: blocks on date, any prefix works.`)
+	fmt.Fprintln(out, `- b:#name: task is blocked until #name exists.`)
 }
 
 func readfile(name string) string {
