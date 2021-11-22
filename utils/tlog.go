@@ -46,8 +46,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	notechan := make(chan string)
+
 	go func() {
-		lastnote := ""
 		buf := [256]byte{}
 		for {
 			if _, err := syscall.Read(ifd, buf[:]); err != nil {
@@ -57,19 +58,32 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			note := string(notebytes)
-			if note == lastnote {
-				continue
-			}
-			t := time.Now().UTC().Format("2006-01-02.15:04:05")
-			fmt.Fprintf(logfile, "%s %q\n", t, note)
-			lastnote = note
+			notechan <- string(notebytes)
 		}
 	}()
 
-	cmd := exec.Command("vim", "-c", "autocmd TextChanged * silent write", notefile)
-	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-	if err = cmd.Run(); err != nil {
-		log.Fatalf("vim failed: %v", err)
+	go func() {
+		cmd := exec.Command("vim", "-c", "autocmd TextChanged * silent write", notefile)
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+		if err = cmd.Run(); err != nil {
+			log.Fatalf("vim failed: %v", err)
+		}
+		notechan <- "\000"
+	}()
+
+	lastnote := ""
+	done := false
+	for !done {
+		note := <-notechan
+		if note == "\000" {
+			done = true
+			note = ""
+		}
+		if note == lastnote {
+			continue
+		}
+		t := time.Now().UTC().Format("2006-01-02.15:04:05")
+		fmt.Fprintf(logfile, "%s %q\n", t, note)
+		lastnote = note
 	}
 }
