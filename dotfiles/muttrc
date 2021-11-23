@@ -103,7 +103,7 @@ bind index - collapse-thread
 bind index _ collapse-all
 bind compose K move-up
 bind compose J move-down
-macro compose M "<filter-entry>basimark<return>y<edit-type><kill-line>text/html; charset=utf-8<return>" "to markdown"
+macro compose M "<filter-entry>bm<return>y<edit-type><kill-line>text/html; charset=utf-8<return>" "to markdown"
 
 folder-hook . push "<collapse-all>\n"
 
