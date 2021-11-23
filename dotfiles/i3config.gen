@@ -37,8 +37,6 @@ bindsym $mod+Shift+Escape exec xterm -name XM-floating
 
 # other hotkeys
 bindsym $mod+t exec links -g
-bindsym $mod+equal exec d/gp-gui/gp-gui.sh
-bindsym $mod+backslash exec d/latex-to-unicode/latex-to-unicode.sh
 bindsym $mod+Mod1+l exec xscreensaver-command -lock
 bindsym $mod+Scroll_Lock exec xscreensaver-command -lock
 bindsym $mod+Mod1+p exec systemctl suspend
@@ -67,6 +65,8 @@ bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
 bindsym $mod+l focus right
+bindsym $mod+Tab exec i3next
+bindsym $mod+grave exec i3next -p
 
 # alternatively, you can use the cursor keys:
 bindsym $mod+Left focus left
@@ -116,14 +116,6 @@ bindsym $mod+7 workspace 7
 bindsym $mod+8 workspace 8
 bindsym $mod+9 workspace 9
 bindsym $mod+0 workspace 10
-
-bindsym $mod+Tab workspace next
-bindsym $mod+Shift+Tab workspace prev
-bindsym $mod+BackSpace workspace prev
-bindsym $mod+Shift+BackSpace workspace next
-
-bindsym $mod+grave focus right
-bindsym $mod+Shift+grave focus left
 
 # move focused container to workspace
 bindsym $mod+Shift+exclam move container to workspace 1
