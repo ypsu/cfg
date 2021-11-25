@@ -83,6 +83,10 @@ func decodeRFC2047(s string) string {
 	return r.String()
 }
 
+func trimquotes(s string) string {
+	return s[1:len(s)-1]
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
@@ -212,9 +216,9 @@ func main() {
 						summary += "\n"
 					}
 				} else if strings.HasPrefix(line, "Subject: ") {
-					summary += decodeRFC2047(line[9:])
+					summary += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
 				} else if print {
-					summary += decodeRFC2047(line)
+					summary += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
 				}
 			}
 			if len(summary) > 0 {
