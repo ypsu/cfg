@@ -39,8 +39,8 @@ bindsym $mod+Shift+Escape exec xterm -name XM-floating
 bindsym $mod+t exec links -g
 bindsym $mod+Mod1+l exec x11lock activate
 bindsym $mod+Scroll_Lock exec x11lock activate
-bindsym $mod+Mod1+p exec systemctl suspend
-bindsym $mod+Pause exec systemctl suspend
+bindsym $mod+Mod1+p exec systemctl suspend && x11lock activate
+bindsym $mod+Pause exec systemctl suspend && x11lock activate
 for_window [title="Latex to Unicode converter"] floating enable
 for_window [window_role="pop-up"] floating enable
 
