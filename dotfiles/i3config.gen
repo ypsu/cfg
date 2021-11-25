@@ -37,8 +37,8 @@ bindsym $mod+Shift+Escape exec xterm -name XM-floating
 
 # other hotkeys
 bindsym $mod+t exec links -g
-bindsym $mod+Mod1+l exec xscreensaver-command -lock
-bindsym $mod+Scroll_Lock exec xscreensaver-command -lock
+bindsym $mod+Mod1+l exec x11lock activate
+bindsym $mod+Scroll_Lock exec x11lock activate
 bindsym $mod+Mod1+p exec systemctl suspend
 bindsym $mod+Pause exec systemctl suspend
 for_window [title="Latex to Unicode converter"] floating enable
