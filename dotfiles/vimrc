@@ -45,15 +45,16 @@ hi SignColumn ctermfg=none ctermbg=0
 hi Visual cterm=inverse ctermfg=11 ctermbg=0
 hi SpellCap ctermfg=none ctermbg=7
 hi SpellBad cterm=inverse ctermfg=14 ctermbg=0
-set cursorline
-hi clear CursorLine
-hi CursorLineNR ctermbg=white
 "hi ErrorMsg cterm=inverse ctermfg=1 ctermbg=15
 " colors for dark theme
 "colorscheme desert
 "hi Visual ctermfg=4 ctermbg=0
 "hi SpellBad ctermbg=1
 "hi SpellCap ctermbg=4
+
+set cursorline
+hi CursorLine cterm=none ctermbg=none
+hi CursorLineNR cterm=inverse ctermfg=gray ctermbg=yellow
 
 " Disable auto-omnicompletion.
 let g:OmniCpp_MayCompleteDot = 0
