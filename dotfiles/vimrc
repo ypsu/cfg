@@ -278,7 +278,7 @@ function SetGoCommands()
 	map <F6> :!go build '%:p' <CR>
 	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
 
-	com! LT 1,$d | r ~/.template.go | 1d | 11
+	com! LT 1,$d | r ~/.template.go | 1d | 12
 	map <Leader>1 :!go build '%:p' <CR>
 	map <Leader>2 :!'%:p:r' <CR>
 	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
