@@ -72,9 +72,9 @@ int main(int argc, char **argv) {
   char cmd[1000];
   snprintf(cmd, 990,
            "grep -qz '^<' %s; html=$?;"
-           "test 0 = $html && basimark -r <%s | sponge %s;"
+           "test 0 = $html && bm -r <%s | sponge %s;"
            "vim -X -c :Mailmode %s;"
-           "test 0 = $html && basimark <%s | sponge %s;"
+           "test 0 = $html && bm <%s | sponge %s;"
            "true",
            argv[1], argv[1], argv[1], argv[1], argv[1], argv[1]);
   if (strlen(cmd) > 980) {
