@@ -325,6 +325,19 @@ int main(int argc, char **argv) {
     char vol[16] = {};
     if (ns.volume != -1) snprintf(vol, 16, "%3d%% vol ", ns.volume);
 
+    // Read custom message if there's one.
+    char msg[64];
+    msg[0] = 0;
+    int mfd = open("/tmp/.sysstatmsg", O_RDONLY);
+    if (mfd != -1) {
+      rby = read(mfd, msg, 63);
+      if (rby >= 0) {
+        msg[rby--] = 0;
+        while (rby >= 0 && msg[rby] == '\n') msg[rby--] = 0;
+      }
+      CHECK(close(mfd) == 0);
+    }
+
     // Print the stats.
     char mem[10], up[10], down[10];
     int cpu;
@@ -342,13 +355,14 @@ int main(int argc, char **argv) {
     cpu = lrint(cpu_used * 100.0 / cpu_all);
     tm = localtime(&ns.date);
     snprintf(buf, BS,
+             "%s "
              "[%s] "
              "%s%s"
              "%5s mem "
              "%5s ↑ %5s ↓ "
              "%3d%% cpu "
              "%04d-%02d-%02d %02d:%02d",
-             hostname, bat, vol, mem, up, down, cpu, tm->tm_year + 1900,
+             msg, hostname, bat, vol, mem, up, down, cpu, tm->tm_year + 1900,
              tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min);
     int len = strlen(buf);
     if (strcmp(config.output, "-") != 0) {
