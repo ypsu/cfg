@@ -15,12 +15,13 @@ func usage() {
 	out := flag.CommandLine.Output()
 	fmt.Fprintln(out, "tlog: timestamped logging.")
 	fmt.Fprintln(out, "starts vim which constantly autosaves its buffer to a logfile along with a timestamp.")
+	fmt.Fprintln(out, "it nags minutes for an update after 20 minutes.")
 	fmt.Fprintln(out, "flags:")
 	flag.PrintDefaults()
 }
 
 var logfileFlag = flag.String("l", path.Join(os.Getenv("HOME"), "rec/tlog"), "logfile to append to.")
-var notefile = "/tmp/.tlognote"
+var notefile = "/tmp/.sysstatmsg"
 
 func main() {
 	flag.Usage = usage
@@ -71,19 +72,35 @@ func main() {
 		notechan <- "\000"
 	}()
 
-	lastnote := ""
 	done := false
+	timer := time.NewTimer(time.Hour)
 	for !done {
-		note := <-notechan
+		var note string
+
+		// wait until a note appears but nag for an update after 20 minutes.
+		timer.Reset(20 * time.Minute)
+		select {
+		case note = <-notechan:
+		case <-timer.C:
+		loop:
+			for {
+				os.Stdout.Write([]byte{7}) // sound the bell.
+				timer.Reset(time.Minute)
+				select {
+				case note = <-notechan:
+					break loop
+				case <-timer.C:
+				}
+			}
+		}
+		timer.Stop()
+
 		if note == "\000" {
 			done = true
 			note = ""
 		}
-		if note == lastnote {
-			continue
-		}
 		t := time.Now().UTC().Format("2006-01-02.15:04:05")
 		fmt.Fprintf(logfile, "%s %q\n", t, note)
-		lastnote = note
 	}
+	os.Remove(notefile)
 }
