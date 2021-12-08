@@ -62,6 +62,12 @@ int main(int argc, char **argv) {
   CHECK(inotify_fd != -1);
   int watchid = inotify_add_watch(inotify_fd, "/tmp/.sysstat", IN_MODIFY);
   CHECK(watchid != -1);
+
+  int fdflags = fcntl(inotify_fd, F_GETFL, 0);
+  CHECK(fdflags >= 0);
+  int blockmode = fdflags;
+  int nonblockmode = fdflags | O_NONBLOCK;
+
   struct inotify_event ev;
   int r;
   do {
@@ -80,7 +86,14 @@ int main(int argc, char **argv) {
                      tm->tm_hour, tm->tm_min) < 17);
     }
     CHECK(puts(buf) >= 0);
-  } while ((r = read(inotify_fd, &ev, sizeof ev)) == sizeof ev);
+
+    // drain inotify fd now to ignore duplicate events
+    // and to ensure the read call in the while below blocks.
+    CHECK(fcntl(inotify_fd, F_SETFL, nonblockmode) == 0);
+    while (read(inotify_fd, &ev, sizeof(ev)) > 0) {
+    }
+    CHECK(fcntl(inotify_fd, F_SETFL, blockmode) == 0);
+  } while ((r = read(inotify_fd, &ev, sizeof(ev))) == sizeof(ev));
   CHECK(r == sizeof ev);
   return 0;
 }
