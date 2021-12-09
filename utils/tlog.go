@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -22,6 +23,20 @@ func usage() {
 
 var logfileFlag = flag.String("l", path.Join(os.Getenv("HOME"), "rec/tlog"), "logfile to append to.")
 var notefile = "/tmp/.sysstatmsg"
+
+func nagforffmpeg() {
+	for {
+		exes, _ := filepath.Glob("/proc/*/exe")
+		for _, symlink := range exes {
+			bin, _ := os.Readlink(symlink)
+			if bin == "/usr/bin/ffmpeg" {
+				return
+			}
+		}
+		os.Stdout.Write([]byte{7}) // sound the bell.
+		time.Sleep(time.Minute)
+	}
+}
 
 func main() {
 	flag.Usage = usage
@@ -101,6 +116,7 @@ func main() {
 		}
 		t := time.Now().UTC().Format("2006-01-02.15:04:05")
 		fmt.Fprintf(logfile, "%s %q\n", t, note)
+		go nagforffmpeg()
 	}
 	os.Remove(notefile)
 }
