@@ -2,10 +2,10 @@
 # compress my recordings.
 cd "$HOME/rec"
 for f in *s.mkv; do
-  if fuser -s $f 2>/dev/null; do
-    echo "$f might be still recorded, skipping"
+  if fuser -s $f 2>/dev/null; then
+    echo "$f might be still being recorded, skipping."
     continue
-  done
+  fi
   h="${f%s.mkv}.mkv"
   echo -e "\e[32mgenerating $h\e[0m"
   if ! test -f "$h"; then

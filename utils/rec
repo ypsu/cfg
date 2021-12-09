@@ -4,7 +4,7 @@
 if test "$1" = "-k"; then
   pid="$(pgrep -f ffmpeg.*x11grab)"
   if test -n "$pid"; then
-    /usr/bin/kill --verbose --timeout 10000 TERM 
+    /usr/bin/kill --verbose --timeout 10000 TERM "$pid"
   fi
   exit
 fi
