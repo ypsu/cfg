@@ -5,9 +5,9 @@ set imap_user = rlblaster@gmail.com
 set imap_pass = `awk '/rlblaster/{print $2}' ~/.config/.myemails`
 set folder = imaps://imap.gmail.com
 set spoolfile = =triage
-set header_cache = /tmp/mutt/
-set message_cachedir = /tmp/mutt/
-set tmpdir = /tmp/mutt/
+set header_cache = /tmp/cache/mutt/
+set message_cachedir = /tmp/cache/mutt/
+set tmpdir = /tmp/cache/mutt/
 set postponed = "+[Gmail]/Drafts"
 set reply_regexp = "^((re:)|(fwd?:)|(aw:)|(\\[[^]]*\\])| )*"
 unset record

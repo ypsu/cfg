@@ -137,7 +137,10 @@ echo Setting tty keymap
 loadkeys -d
 loadkeys /home/rlblaster/.d/cfg/misc/loadkeys.cfg
 kbdrate -d 300 -r 40
-eper mkdir /tmp/gocache
+eper mkdir -p /tmp/cache/go-build
+ipi mkdir -p /tmp/cache/{go-build,mozilla}
+eper chmod -R /tmp/cache
+ipi chmod -R /tmp/cache
 
 echo Setting kernel variables
 echo 1 > /proc/sys/kernel/sysrq
