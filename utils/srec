@@ -1,5 +1,5 @@
 #!/bin/bash
-# record my screen usage.
+# srec: screen recorder.
 
 if test "$1" = "-k"; then
   pid="$(pgrep -f ffmpeg.*x11grab)"
