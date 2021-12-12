@@ -22,6 +22,8 @@ func usage() {
 	fmt.Fprintln(out, `todo: summarizes todo, .backlog, .rems, and emails.`)
 	fmt.Fprintln(out, ``)
 	fmt.Fprintln(out, `todo entries have the format "#name summary [blockers]"`)
+	fmt.Fprintln(out, `"#name!" means an important task, takes precedence over everything."`)
+	fmt.Fprintln(out, `"#name." means a backlog task, only appears if all the other backlog task are done."`)
 	fmt.Fprintln(out, `blockers can be the following:`)
 	fmt.Fprintln(out, `- b:YYYY-MM-DD.HH:MM:SS: blocks on date, any prefix works.`)
 	fmt.Fprintln(out, `- b:#name: task is blocked until #name exists.`)
@@ -106,9 +108,6 @@ func main() {
 			rems = append(rems, line)
 		}
 	}
-	if len(rems) > 0 {
-		fmt.Printf("reminders:\n  %s\n\n", strings.Join(rems, "\n  "))
-	}
 
 	// process the todo files.
 	activetasks := []string{}
@@ -122,6 +121,11 @@ func main() {
 			}
 			tasks = append(tasks, line)
 			t := strings.Fields(line)[0]
+			lc := t[len(t)-1]
+			if lc == '!' {
+				fmt.Println(line)
+				return
+			}
 			if _, ok := taskready[t]; ok {
 				fmt.Printf("error: #%s is duplicated\n", t)
 			}
@@ -154,11 +158,24 @@ func main() {
 			taskready[task] = ready
 		}
 	}
+	hadbacklog := false
 	for _, title := range tasks {
 		task := strings.Fields(title)[0]
+		lc := task[len(task)-1]
+		if lc == '.' {
+			if hadbacklog {
+				continue
+			}
+			hadbacklog = true
+		}
 		if taskready[task] {
 			activetasks = append(activetasks, tasktitle[task])
 		}
+	}
+
+	// print the reminders and tasks.
+	if len(rems) > 0 {
+		fmt.Printf("reminders:\n  %s\n\n", strings.Join(rems, "\n  "))
 	}
 	if len(activetasks) > 0 {
 		fmt.Printf("tasks:\n  %s\n\n", strings.Join(activetasks, "\n  "))
