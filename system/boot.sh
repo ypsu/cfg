@@ -58,7 +58,7 @@ else
 fi
 
 if test "$(hostname)" = "ipi"; then
-  echo -en '\e]P0ffffff'  # the backguound
+  echo -en '\e]P0ffffff'  # the background
   echo -en '\e]P1000000'
   echo -en '\e]P2000000'
   echo -en '\e]P3000000'
