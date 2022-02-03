@@ -167,6 +167,7 @@ func main() {
 				continue
 			}
 			hadbacklog = true
+			taskready[task] = true
 		}
 		if taskready[task] {
 			activetasks = append(activetasks, tasktitle[task])
