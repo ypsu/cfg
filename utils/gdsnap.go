@@ -99,7 +99,7 @@ implementation details:
       which is then deleted after 30 days.
     - gdsnap/symlink: the file is a symlink and the contents is the target file.
       the contents of this is not encrypted.
-    - gdsnap/dataxxx: ordinary file. xxx is an octal number of the permissions
+    - gdsnap/data???: ordinary file. ??? is an octal number of the permissions
       that restore will use when restoring a file.
 
 cleanup:
@@ -843,8 +843,13 @@ func (gs *gdsnap) decrypt(fi *fileinfo, mime string, content []byte) (string, []
 	return mime, content
 }
 
-func (gs *gdsnap) revfetch(fi *fileinfo) (mime string, content []byte) {
+// revfetch fetches the content at a specific version.
+// the content fetching is skipped if the revision's last modified time equals to skipDate.
+func (gs *gdsnap) revfetch(fi *fileinfo, skipDate string) (mime string, content []byte) {
 	if len(*tFlag) == 0 || fi.ModifiedTime <= *tFlag {
+		if fi.ModifiedTime == skipDate {
+			return fi.MimeType, nil
+		}
 		getreq, err := http.NewRequest("GET", "https://www.googleapis.com/drive/v3/files/"+fi.ID+"?alt=media", nil)
 		if err != nil {
 			log.Fatal(err)
@@ -903,6 +908,9 @@ func (gs *gdsnap) revfetch(fi *fileinfo) (mime string, content []byte) {
 	if ri == nil {
 		return "gdsnap/deleted", nil
 	}
+	if ri.ModifiedTime == skipDate {
+		return ri.MimeType, nil
+	}
 	getreq, err := http.NewRequest("GET", "https://www.googleapis.com/drive/v3/files/"+fi.ID+"/revisions/"+ri.ID+"?alt=media", nil)
 	if err != nil {
 		log.Fatal(err)
@@ -916,14 +924,14 @@ func (gs *gdsnap) revfetch(fi *fileinfo) (mime string, content []byte) {
 	if err != nil {
 		log.Fatalf("error reading contents for %s: %v", fi.Name, err)
 	}
-	return gs.decrypt(fi, fi.MimeType, contents)
+	return gs.decrypt(fi, ri.MimeType, contents)
 }
 
 func (gs *gdsnap) subcommandCat(args []string) {
 	gs.listfiles()
 	for _, relpath := range filterfiles(gs.files, args) {
 		fi := gs.files[relpath]
-		mime, contents := gs.revfetch(&fi)
+		mime, contents := gs.revfetch(&fi, "")
 		switch mime {
 		case "gdsnap/deleted":
 			fmt.Printf("%s is deleted.", relpath)
@@ -943,18 +951,25 @@ func (gs *gdsnap) subcommandDiff(args []string) {
 			log.Fatalf("%s is not backed up.", relpath)
 		}
 
-		mime, contents := gs.revfetch(&fi)
-
 		fullpath, err := filepath.Abs(filepath.Join(*dirFlag, relpath))
 		finfo, err := os.Lstat(fullpath)
 		if err != nil {
+			mime, _ := gs.revfetch(&fi, fi.ModifiedTime)
 			if mime != "gdsnap/deleted" {
 				fmt.Printf("skipping %s because can't stat it: %v.\n", relpath, err)
 			}
 			continue
 		}
+		const tLayout = "2006-01-02T15:04:05.000Z"
+		fileDate := finfo.ModTime().UTC().Format(tLayout)
+		mime, contents := gs.revfetch(&fi, fileDate)
 		if mime == "gdsnap/deleted" {
 			fmt.Printf("skipping %s because because it's trashed in the archive.\n", relpath)
+			continue
+		}
+		if contents == nil {
+			// revfetch returns nil if the revision's mod time is fileDate.
+			// it means there wasn't any diff so let's further diffing.
 			continue
 		}
 		filetype := "regular file"
@@ -1011,7 +1026,7 @@ func (gs *gdsnap) subcommandRestore(args []string) {
 			fmt.Printf("skipping %s because it's not backed up.", relpath)
 			continue
 		}
-		mime, contents := gs.revfetch(&fi)
+		mime, contents := gs.revfetch(&fi, "")
 		if mime == "gdsnap/deleted" {
 			continue
 		}
