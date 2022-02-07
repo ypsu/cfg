@@ -711,6 +711,7 @@ initloop:
 			log.Printf("got a sigint, running a backup cycle for %d files (use sigquit to quit).", len(touched))
 		}
 
+		gs.gettoken()
 		gs.checkQuota()
 		gs.listfiles()
 		for fn := range touched {
@@ -1062,6 +1063,10 @@ func (gs *gdsnap) getquota() quota {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatalf("failed querying quota data: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		log.Fatalf("quota request returned error: %s\n%s", resp.Status, body)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
