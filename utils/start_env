@@ -22,6 +22,10 @@ if tmux has-session 2>/dev/null; then
   exit
 fi
 
+if "$hostname" = eper; then
+  alert startupalert "start gdsnap and my server"
+fi
+
 tmux new-session -d
 tmux rename-window "____"
 settitle xterm
@@ -30,4 +34,3 @@ for i in {2..5}; do
 done
 tmux select-window -t 1
 tmux attach
-bash
