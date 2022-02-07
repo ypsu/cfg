@@ -140,9 +140,13 @@ echo 100 > /proc/sys/vm/dirty_background_ratio
 echo 100 > /proc/sys/vm/dirty_ratio
 echo 30000 > /proc/sys/vm/dirty_expire_centisecs
 echo 18000 > /proc/sys/vm/dirty_writeback_centisecs
-eper echo 16384 > /proc/sys/vm/min_free_kbytes
-ipi echo 262144 > /proc/sys/vm/min_free_kbytes
-paks echo 262144 > /proc/sys/vm/min_free_kbytes
+echo 262144 > /proc/sys/vm/min_free_kbytes
+if test "$hostname" = eper; then
+  echo 360000 > /proc/sys/vm/dirty_expire_centisecs
+  echo 360000 > /proc/sys/vm/dirty_writeback_centisecs
+  echo 3600 > /proc/sys/vm/dirtytime_expire_seconds
+  echo 16384 > /proc/sys/vm/min_free_kbytes
+fi
 
 log Setting time
 eperipi sntp || sntp || sntp || sntp  # Try 4 times just in case.
