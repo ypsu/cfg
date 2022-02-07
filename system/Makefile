@@ -23,12 +23,6 @@ $(HOME)/.sbin/halt: halt.c
 	@ln -s halt $(HOME)/.sbin/reboot &>/dev/null || true
 	@ln -s halt $(HOME)/.sbin/poweroff &>/dev/null || true
 
-$(HOME)/.sbin/wmount: wmount.c
-	@echo building $@
-	@gcc $(common_opts) -o $@ $< $(link_opts)
-	@echo adding setuid rights
-	@chmod +s $(HOME)/.sbin/wmount
-
 $(HOME)/.sbin/%: %.c
 	@echo building $@
 	@gcc $(common_opts) -o $@ $< $(link_opts)
