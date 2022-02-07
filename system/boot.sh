@@ -109,17 +109,9 @@ if test $? -ge 2; then
 fi
 
 log Mounting filesystems
-paks logexec mount -o remount,rw /
-paks logexec mount /boot
+logexec mount -o remount,rw /
+logexec mount /boot
 paks logexec mount /data
-ipi logexec mount -o remount,rw /
-ipi logexec mount /boot
-eper logexec mount -o ro /boot
-eper logexec mount -o mode=0755,uid=1000,gid=100 -t tmpfs tmpfs /homebuf
-eper logexec mount -o bind,rw /homebuf /homebufrw
-eper logexec mount -o rw,remount /
-eper logexec su rlblaster -c "unionfs -o allow_other,cow,hide_meta_files /homebuf=RW:/homedisk=RO /home"
-eper logexec mount -o ro,remount /
 
 log Setting up environment
 export LC_ALL=en_US.UTF-8
