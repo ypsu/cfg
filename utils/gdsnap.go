@@ -706,21 +706,29 @@ initloop:
 			touched[fn] = true
 			continue
 		case <-timer.C:
-			log.Printf("-cycledur elapsed, running a backup cycle for %d files.", len(touched))
+			if len(touched) > 0 {
+				log.Printf("cycle timeout, running a backup cycle for %d files.", len(touched))
+			}
 		case <-sigintch:
-			log.Printf("got a sigint, running a backup cycle for %d files (use sigquit to quit).", len(touched))
+			if len(touched) == 0 {
+				log.Printf("got a sigint but skipping backup cycle since nothing changed (use sigquit to quit).")
+			} else {
+				log.Printf("got a sigint, running a backup cycle for %d files (use sigquit to quit).", len(touched))
+			}
 		}
 
-		gs.gettoken()
-		gs.checkQuota()
-		gs.listfiles()
-		for fn := range touched {
-			delete(touched, fn)
-			gs.savepath(fn)
+		if len(touched) > 0 {
+			gs.gettoken()
+			gs.checkQuota()
+			gs.listfiles()
+			for fn := range touched {
+				delete(touched, fn)
+				gs.savepath(fn)
+			}
+			log.Printf("backup cycle done.")
+			// it's the perfect time to collect the garbage from this cycle.
+			runtime.GC()
 		}
-		log.Printf("backup cycle done.")
-		// it's the perfect time to collect the garbage from this cycle.
-		runtime.GC()
 		timer.Stop()
 		timer.Reset(*cycledurFlag)
 	}
