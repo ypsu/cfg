@@ -39,14 +39,11 @@ func usage() {
 usage: gdsnap [global flags...] subcommand [args...]
 
 periodically snapshots the changed files of a directory to gdrive as a backup.
-use the backup subcommand to back up data and diff/restore to get it back.
-note gdsnap backs up files only. empty directories are ignored.
-
-to use set up the right -dir and -gdir flags (ideally in a config file),
+to use: set up the right -dir and -gdir flags (ideally in a config file),
 then use the auth subcommand to authorize,
 and then run the watch command as a daemon to back up data continuosly.
 if you want to restore, use the restore subcommand.
-you can alter -dir for restore in case you want to restore files somewhere else.
+you can alter the -dir flag for restore in case you want to restore files somewhere else.
 
 subcommands:
   auth: authorize a gdrive account for gdsnap.
