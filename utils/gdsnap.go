@@ -155,7 +155,7 @@ func hostname() string {
 
 // matchglob matches simple globs.
 // only supports * and **.
-// * matches everything /, ** matches / too.
+// * matches everything except /, ** matches / too.
 func matchglob(pattern, name string) bool {
 	laststar, lastdstar := -1, -1
 	p, n := 0, 0
