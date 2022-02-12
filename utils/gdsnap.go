@@ -703,15 +703,14 @@ initloop:
 	timer := time.NewTimer(*cycledurFlag)
 	touched := map[string]bool{}
 	for {
+		wasSIGINT := false
 		select {
 		case fn := <-filech:
 			touched[fn] = true
 			continue
 		case <-timer.C:
-			if len(touched) > 0 {
-				log.Printf("cycle timeout, running a backup cycle for %d files.", len(touched))
-			}
 		case <-sigintch:
+			wasSIGINT = true
 			if len(touched) == 0 {
 				log.Printf("got a sigint but skipping backup cycle since nothing changed (use sigquit to quit).")
 			} else {
@@ -727,7 +726,9 @@ initloop:
 				delete(touched, fn)
 				gs.savepath(fn, false)
 			}
-			log.Printf("backup cycle done.")
+			if wasSIGINT {
+				log.Printf("backup cycle done.")
+			}
 			// it's the perfect time to collect the garbage from this cycle.
 			runtime.GC()
 		}
