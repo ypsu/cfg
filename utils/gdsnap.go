@@ -445,7 +445,7 @@ type gfileProperties struct {
 	Trashed      *bool             `json:"trashed,omitempty"`
 }
 
-func (gs *gdsnap) savepath(abspath string) {
+func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	if !strings.HasPrefix(abspath, *dirFlag) {
 		log.Printf("skipping %s because it's not under %s.", abspath, *dirFlag)
 		return
@@ -460,7 +460,9 @@ func (gs *gdsnap) savepath(abspath string) {
 	fi, exist := gs.files[relpath]
 	finfo, err := os.Lstat(abspath)
 	if err != nil && (!exist || fi.Trashed) {
-		log.Printf("skipping %s because can't stat it and it's not on gdrive either: %v.", relpath, err)
+		if verbose {
+			log.Printf("skipping %s because can't stat it and it's not on gdrive either: %v.", relpath, err)
+		}
 		return
 	}
 
@@ -483,7 +485,7 @@ func (gs *gdsnap) savepath(abspath string) {
 					log.Printf("filepath.WalkDir(%s) error: %v", path, err)
 				}
 				if !d.IsDir() {
-					gs.savepath(path)
+					gs.savepath(path, verbose)
 				}
 				return nil
 			}
@@ -667,11 +669,11 @@ func (gs *gdsnap) subcommandWatch(args []string) {
 	gs.listfiles()
 	for _, f := range gs.files {
 		if !f.Trashed {
-			gs.savepath(path.Join(*dirFlag, f.Name))
+			gs.savepath(path.Join(*dirFlag, f.Name), true)
 		}
 	}
 	log.Print("initial scan: creating new files seen on disk.")
-	gs.savepath(*dirFlag)
+	gs.savepath(*dirFlag, true)
 
 	filech := make(chan string, 1000)
 	go watchdir(filech)
@@ -682,11 +684,11 @@ initloop:
 	for {
 		select {
 		case fn := <-filech:
-			gs.savepath(fn)
+			gs.savepath(fn, true)
 		default:
 			select {
 			case fn := <-filech:
-				gs.savepath(fn)
+				gs.savepath(fn, true)
 			case <-time.After(3 * time.Second):
 				break initloop
 			}
@@ -723,7 +725,7 @@ initloop:
 			gs.listfiles()
 			for fn := range touched {
 				delete(touched, fn)
-				gs.savepath(fn)
+				gs.savepath(fn, false)
 			}
 			log.Printf("backup cycle done.")
 			// it's the perfect time to collect the garbage from this cycle.
@@ -827,7 +829,7 @@ func (gs *gdsnap) subcommandSave(args []string) {
 		if fullpath == (*dirFlag)[:len(*dirFlag)-1] {
 			fullpath += "/"
 		}
-		gs.savepath(fullpath)
+		gs.savepath(fullpath, true)
 	}
 }
 
