@@ -340,19 +340,6 @@ func watchdir(filech chan<- string) {
 	}
 }
 
-func fmtnum(n int64) string {
-	if n > 1e10 {
-		return fmt.Sprintf("%4d G", n/1e9)
-	}
-	if n > 1e7 {
-		return fmt.Sprintf("%4d M", n/1e6)
-	}
-	if n > 1e4 {
-		return fmt.Sprintf("%4d k", n/1e3)
-	}
-	return fmt.Sprintf("%4d  ", n)
-}
-
 func warn() {
 	os.Stdout.WriteString("\a")
 	if len(*warncmdFlag) == 0 {
