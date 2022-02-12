@@ -36,7 +36,7 @@ import (
 func usage() {
 	o := flag.CommandLine.Output()
 	fmt.Fprintln(o, `gdsnap: google drive snapshotter
-usage: gdsnap [global flags...] subcommand [flags...] [args...]
+usage: gdsnap [global flags...] subcommand [args...]
 
 periodically snapshots the changed files of a directory to gdrive as a backup.
 use the backup subcommand to back up data and diff/restore to get it back.
