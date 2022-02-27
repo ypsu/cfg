@@ -202,7 +202,7 @@ function! NextIndent(exclusive, fwd, lowerlevel, skipblanks)
 endfunction
 
 function! Format()
-  if &filetype == 'c' || &filetype == 'cpp' || &filetype == 'js'
+  if &filetype == 'c' || &filetype == 'cpp' || &filetype == 'javascript'
     let filter = 'clang-format --assume-filename=' . expand("%:t")
   elseif &filetype == 'go'
     let filter = 'goimports'
