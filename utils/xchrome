@@ -13,4 +13,5 @@ google-chrome \
   --enable-features="OmniboxUIExperimentMaxAutocompleteMatches<Trial" \
   --force-fieldtrials="Trial/Group" \
   --force-fieldtrial-params="Trial.Group:UIMaxAutocompleteMatches/1/UIMaxAutocompleteMatchesByProvider/*%3A0" \
+  --force-prefers-reduced-motion \
   "$@"
