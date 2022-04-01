@@ -31,7 +31,7 @@ user_pref("privacy.trackingprotection.socialtracking.enabled", true);
 user_pref("signon.rememberSignons", false);
 user_pref("signon.rememberSignons", false);
 user_pref("ui.caretBlinkTime", 0);
-user_pref("ui.prefersReducedMotion", true);
+user_pref("ui.prefersReducedMotion", 1);
 
 // font overrides are disabled since i have a different config on ipi.
 // user_pref("font.name.monospace.x-western", "Terminus");
