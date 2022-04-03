@@ -13,7 +13,7 @@ if test "$HOSTNAME" != ipi; then
   # enable screensaving on all my machines.
   xset s noblank
   xset s 900
-  xset dpms 915 915 915
+  xset dpms 1200 1200 1200
   x11lock stop >/dev/null
   x11lock start
 fi
