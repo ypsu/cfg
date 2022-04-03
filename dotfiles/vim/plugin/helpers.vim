@@ -228,7 +228,7 @@ function! Format()
 
   let winview = winsaveview()
   " must make a bogus change to retain cursor position.
-  :s/$/&/
+  :s/$//
   :%!cat /tmp/.vimfmtnew
   call winrestview(winview)
 endfunction
