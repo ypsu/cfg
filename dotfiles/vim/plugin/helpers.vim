@@ -225,9 +225,10 @@ function! Format()
   if newlines == oldlines
     return
   endif
+
   let winview = winsaveview()
-  :%delete _
-  call setline(1, newlines)
-  echo ""
+  " must make a bogus change to retain cursor position.
+  :s/$/&/
+  :%!cat /tmp/.vimfmtnew
   call winrestview(winview)
 endfunction
