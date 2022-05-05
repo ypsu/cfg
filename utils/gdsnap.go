@@ -733,9 +733,12 @@ func (gs *gdsnap) subcommandAuth(args []string) {
 	q.Set("client_id", oaClientID)
 	q.Set("scope", "https://www.googleapis.com/auth/drive.file")
 	q.Set("response_type", "code")
-	q.Set("redirect_uri", "urn:ietf:wg:oauth:2.0:oob")
+	q.Set("redirect_uri", "http://127.0.0.1:1")
 	u := "https://accounts.google.com/o/oauth2/auth?" + q.Encode()
-	fmt.Printf("please visit %s and authorize. enter response code here:\n", u)
+	fmt.Println("visit and authorize gdsnap:")
+	fmt.Println(u)
+	fmt.Println("after the authorization it'll redirect to an invalid address.")
+	fmt.Println("but from the url copy the code component's value here (starts with 4/):")
 
 	var authcode string
 	if _, err := fmt.Scan(&authcode); err != nil {
@@ -746,7 +749,7 @@ func (gs *gdsnap) subcommandAuth(args []string) {
 	q.Set("code", authcode)
 	q.Set("client_id", oaClientID)
 	q.Set("client_secret", oaSecret)
-	q.Set("redirect_uri", "urn:ietf:wg:oauth:2.0:oob")
+	q.Set("redirect_uri", "http://127.0.0.1:1")
 	q.Set("grant_type", "authorization_code")
 	response, err := http.Post("https://oauth2.googleapis.com/token", "application/x-www-form-urlencoded", strings.NewReader(q.Encode()))
 	if err != nil {
