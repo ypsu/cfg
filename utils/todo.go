@@ -86,7 +86,7 @@ func decodeRFC2047(s string) string {
 }
 
 func trimquotes(s string) string {
-	return s[1:len(s)-1]
+	return s[1 : len(s)-1]
 }
 
 func main() {
