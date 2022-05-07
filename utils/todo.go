@@ -22,11 +22,11 @@ func usage() {
 	fmt.Fprintln(out, `todo: summarizes todo, .backlog, .rems, and emails.`)
 	fmt.Fprintln(out, ``)
 	fmt.Fprintln(out, `todo entries have the format "#name summary [blockers]"`)
-	fmt.Fprintln(out, `"#name!" means an important task, takes precedence over everything."`)
-	fmt.Fprintln(out, `"#name." means a backlog task, only appears if all the other backlog task are done."`)
 	fmt.Fprintln(out, `blockers can be the following:`)
 	fmt.Fprintln(out, `- b:YYYY-MM-DD.HH:MM:SS: blocks on date, any prefix works.`)
 	fmt.Fprintln(out, `- b:#name: task is blocked until #name exists.`)
+	fmt.Fprintln(out, `- b:urgent: every other task is blocked until this clears.`)
+	fmt.Fprintln(out, `- b:backlog: task is blocked until there's another backlog item.`)
 }
 
 func readfile(name string) string {
@@ -120,11 +120,13 @@ func main() {
 				continue
 			}
 			tasks = append(tasks, line)
-			t := strings.Fields(line)[0]
-			lc := t[len(t)-1]
-			if lc == '!' {
-				fmt.Println(line)
-				return
+			fields := strings.Fields(line)
+			t := fields[0]
+			for _, f := range fields {
+				if f == "b:urgent" {
+					fmt.Println(line)
+					return
+				}
 			}
 			if _, ok := taskready[t]; ok {
 				fmt.Printf("error: #%s is duplicated\n", t)
@@ -133,9 +135,10 @@ func main() {
 			tasktitle[t] = line
 		}
 	}
+	hadbacklog := false
 	for _, title := range tasks {
 		task := strings.Fields(title)[0]
-		ready, hadblocker := true, false
+		ready, hadblocker, isbacklog := true, false, false
 		for _, token := range strings.Fields(title) {
 			if !strings.HasPrefix(token, "b:") {
 				continue
@@ -150,24 +153,18 @@ func main() {
 				if _, ok := taskready[blocker]; ok {
 					ready = false
 				}
+			} else if blocker == "backlog" {
+				isbacklog = true
 			} else {
 				fmt.Printf("invalid blocker %q in %s\n", blocker, task)
 			}
 		}
 		if hadblocker {
-			taskready[task] = ready
-		}
-	}
-	hadbacklog := false
-	for _, title := range tasks {
-		task := strings.Fields(title)[0]
-		lc := task[len(task)-1]
-		if lc == '.' {
-			if hadbacklog {
-				continue
+			if ready && isbacklog {
+				ready = !hadbacklog
+				hadbacklog = true
 			}
-			hadbacklog = true
-			taskready[task] = true
+			taskready[task] = ready
 		}
 		if taskready[task] {
 			activetasks = append(activetasks, tasktitle[task])
