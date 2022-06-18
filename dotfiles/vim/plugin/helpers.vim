@@ -81,8 +81,9 @@ function! InitLongLineMatch()
   endif
 endfunction
 
-autocmd VimEnter * call InitLongLineMatch()
-autocmd WinEnter * call InitLongLineMatch()
+" Don't highlight the 80th column.
+" autocmd VimEnter * call InitLongLineMatch()
+" autocmd WinEnter * call InitLongLineMatch()
 
 function! SelectFile()
   let s:cmd = "silent !file_selector >/tmp/.fsel_fname -u " . v:count
