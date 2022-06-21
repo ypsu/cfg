@@ -143,7 +143,7 @@ func toMarkdown(inputbuf []byte) []byte {
 func handlePreview(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte(`<head><title>basimark</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body><div id=hcontent></div>
+<body><div id=hcontent>this needs javascript.</div>
 <script>
 	let main = async _ => {
 		hcontent.innerText = "loading...";
@@ -286,6 +286,9 @@ func main() {
 						todoContent.Write(line)
 						todoContent.WriteByte('\n')
 					}
+				}
+				if todoContent.Len() == 0 {
+					log.Fatalf("todo item %s not found", *tFlag)
 				}
 				content = todoContent.Bytes()
 			}
