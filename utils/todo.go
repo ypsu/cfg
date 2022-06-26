@@ -104,7 +104,7 @@ func main() {
 	// process the .rems file.
 	rems := []string{}
 	for _, line := range strings.Split(readfile(".rems"), "\n") {
-		if len(line) > 0 && line <= now {
+		if len(line) > 0 && line[0] != '#' && line <= now {
 			rems = append(rems, line)
 		}
 	}
