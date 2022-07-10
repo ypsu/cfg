@@ -203,10 +203,12 @@ function! NextIndent(exclusive, fwd, lowerlevel, skipblanks)
 endfunction
 
 function! Format()
-  if &filetype == 'c' || &filetype == 'cpp' || &filetype == 'javascript'
+  if &filetype == 'c' || &filetype == 'cpp'
     let filter = 'clang-format --assume-filename=' . expand("%:t")
   elseif &filetype == 'go'
     let filter = 'goimports'
+  elseif &filetype == 'javascript'
+    let filter = 'js-beautify --indent-size=2 --end-with-newline'
   else
     echo "no formatter for " . &filetype
     return
