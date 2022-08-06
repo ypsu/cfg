@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -89,10 +90,22 @@ func trimquotes(s string) string {
 	return s[1 : len(s)-1]
 }
 
+type config struct {
+	SizeWatches map[string]int
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
 	now := time.Now().Format("2006-01-02.15:04:05")
+
+	// load config if present.
+	cfg := &config{}
+	if cfgfile, err := os.ReadFile(path.Join(os.Getenv("HOME"), ".config/todo.cfg")); err == nil {
+		if err := json.Unmarshal(cfgfile, cfg); err != nil {
+			log.Fatalf("error parsing config json: %v.", err)
+		}
+	}
 
 	// invoke the flashcard app.
 	cmd := exec.Command("flashcard")
@@ -177,6 +190,22 @@ func main() {
 	}
 	if len(activetasks) > 0 {
 		fmt.Printf("tasks:\n  %s\n\n", strings.Join(activetasks, "\n  "))
+	}
+
+	// process the size watches if any.
+	var watchnotes []string
+	for f, sz := range cfg.SizeWatches {
+		s, err := os.Stat(f)
+		if err != nil {
+			watchnotes = append(watchnotes, "  "+err.Error())
+			continue
+		}
+		if s.Size() != int64(sz) {
+			watchnotes = append(watchnotes, fmt.Sprintf("  filesize of %s changed to %d", f, s.Size()))
+		}
+	}
+	if len(watchnotes) > 0 {
+		fmt.Printf("filewatches:\n%s\n\n", strings.Join(watchnotes, "\n"))
 	}
 
 	// now check emails.
