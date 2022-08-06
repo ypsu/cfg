@@ -180,9 +180,47 @@ func handleContent(w http.ResponseWriter, req *http.Request) {
 	<-done
 }
 
+func readContent(fFlag, tFlag string) ([]byte, error) {
+	content, err := ioutil.ReadFile(fFlag)
+	if err != nil {
+		return nil, err
+	}
+	if tFlag != "" {
+		var curItem string
+		var todoContent bytes.Buffer
+		for _, line := range bytes.Split(content, []byte("\n")) {
+			if bytes.HasPrefix(line, []byte("#")) {
+				var item []byte
+				for i := 1; i < len(line) && (unicode.IsLetter(rune(line[i])) || unicode.IsDigit(rune(line[i]))); i++ {
+					item = line[1 : i+1]
+				}
+				if len(item) > 0 {
+					curItem = string(item)
+					if curItem == tFlag {
+						todoContent.Write([]byte("# "))
+						todoContent.Write(line[1:])
+						todoContent.WriteByte('\n')
+						continue
+					}
+				}
+			}
+			if curItem == tFlag {
+				todoContent.Write(line)
+				todoContent.WriteByte('\n')
+			}
+		}
+		if todoContent.Len() == 0 {
+			return nil, fmt.Errorf("todo item %s not found", tFlag)
+		}
+		content = todoContent.Bytes()
+	}
+	return content, nil
+}
+
 func main() {
 	// set up flags.
 	pFlag := flag.Int("p", 8080, "port to use for the web server for -f and -t flags. the content will be on /preview.")
+	qFlag := flag.Bool("q", false, "write input text back in quoted form.")
 	rFlag := flag.Bool("r", false, "restore the html back to the original text.")
 	fFlag := flag.String("f", "", "file to watch and serve via web.")
 	tFlag := flag.String("t", "", "todo item to watch from my todo list.")
@@ -226,7 +264,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		// run the conversion.
+		// run the quoting conversion.
+		if *qFlag {
+			fmt.Printf("%q\n", string(inputbuf))
+			return
+		}
+
+		// run the markdown conversion.
 		outbuf := inputbuf
 		isHTML := bytes.HasPrefix(inputbuf, []byte("<"))
 		if *rFlag && isHTML {
@@ -235,6 +279,15 @@ func main() {
 			outbuf = toHTML(inputbuf, autolinks)
 		}
 		ioutil.WriteFile("/dev/stdout", outbuf, 0)
+		return
+	}
+
+	if *qFlag {
+		content, err := readContent(*fFlag, *tFlag)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%q\n", string(content))
 		return
 	}
 
@@ -259,38 +312,9 @@ func main() {
 		}
 		if info.ModTime() != lastMod {
 			lastMod = info.ModTime()
-			content, err = ioutil.ReadFile(*fFlag)
+			content, err = readContent(*fFlag, *tFlag)
 			if err != nil {
 				log.Fatal(err)
-			}
-			if len(*tFlag) > 0 {
-				var curItem string
-				var todoContent bytes.Buffer
-				for _, line := range bytes.Split(content, []byte("\n")) {
-					if bytes.HasPrefix(line, []byte("#")) {
-						var item []byte
-						for i := 1; i < len(line) && (unicode.IsLetter(rune(line[i])) || unicode.IsDigit(rune(line[i]))); i++ {
-							item = line[1 : i+1]
-						}
-						if len(item) > 0 {
-							curItem = string(item)
-							if curItem == *tFlag {
-								todoContent.Write([]byte("# "))
-								todoContent.Write(line[1:])
-								todoContent.WriteByte('\n')
-								continue
-							}
-						}
-					}
-					if curItem == *tFlag {
-						todoContent.Write(line)
-						todoContent.WriteByte('\n')
-					}
-				}
-				if todoContent.Len() == 0 {
-					log.Fatalf("todo item %s not found", *tFlag)
-				}
-				content = todoContent.Bytes()
 			}
 			content = toHTML(content, autolinks)
 			for _, r := range waitingRequests {
