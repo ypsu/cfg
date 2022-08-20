@@ -191,7 +191,7 @@ func readContent(fFlag, tFlag string) ([]byte, error) {
 		for _, line := range bytes.Split(content, []byte("\n")) {
 			if bytes.HasPrefix(line, []byte("#")) {
 				var item []byte
-				for i := 1; i < len(line) && (unicode.IsLetter(rune(line[i])) || unicode.IsDigit(rune(line[i]))); i++ {
+				for i := 1; i < len(line) && !unicode.IsSpace(rune(line[i])); i++ {
 					item = line[1 : i+1]
 				}
 				if len(item) > 0 {
@@ -210,7 +210,7 @@ func readContent(fFlag, tFlag string) ([]byte, error) {
 			}
 		}
 		if todoContent.Len() == 0 {
-			return nil, fmt.Errorf("todo item %s not found", tFlag)
+			return nil, fmt.Errorf("item %q in %q not found", tFlag, fFlag)
 		}
 		content = todoContent.Bytes()
 	}
@@ -223,7 +223,7 @@ func main() {
 	qFlag := flag.Bool("q", false, "write input text back in quoted form.")
 	rFlag := flag.Bool("r", false, "restore the html back to the original text.")
 	fFlag := flag.String("f", "", "file to watch and serve via web.")
-	tFlag := flag.String("t", "", "todo item to watch from my todo list.")
+	tFlag := flag.String("t", "", "item to watch from my todo list or the file given.")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "bm: basic markdown is a tool that transforms or serves markdown text.")
 		fmt.Fprintln(os.Stderr, "usage 1: bm <input >output")
@@ -242,11 +242,16 @@ func main() {
 			flag.Usage()
 			return
 		}
-		a := flag.Args()[0]
-		if _, err := os.Stat(a); err == nil {
-			*fFlag = a
-		} else {
-			*tFlag = a
+		if flag.NArg() == 1 {
+			a := flag.Args()[0]
+			if _, err := os.Stat(a); err == nil {
+				*fFlag = a
+			} else {
+				*tFlag = a
+			}
+		} else if flag.NArg() == 2 {
+			*fFlag = flag.Args()[0]
+			*tFlag = flag.Args()[1]
 		}
 	}
 	if len(*tFlag) > 0 && len(*fFlag) == 0 {
