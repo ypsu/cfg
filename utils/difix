@@ -14,6 +14,8 @@ if test -n "$display" && test -z "$displayres"; then
   # if display is connected but not turned on, switch to it.
   xrandr --output "$display" --auto
   xrandr --output "$laptop" --off
+  sleep 5  # wait for the keyboard device to be picked up.
+  rx  # reset the x settings.
 else
   # set the laptop screen in every other case.
   # turn off the display if it was on.
@@ -24,6 +26,3 @@ else
   fi
   xrandr --output "$display" --off
 fi
-
-# reset x settings just in case.
-rx
