@@ -1,0 +1,12 @@
+#!/bin/bash
+# read aloud stuff copied into the clipboard.
+
+msg="$(xclip -selection clipboard -o)"
+while sleep 0.2; do
+  newmsg="$(xclip -selection clipboard -o)"
+  if test "$newmsg" = "$msg"; then
+    continue
+  fi
+  msg="$newmsg"
+  /usr/bin/RHVoice-test -p slt <<<"$newmsg"
+done
