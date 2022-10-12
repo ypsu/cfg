@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -90,22 +89,10 @@ func trimquotes(s string) string {
 	return s[1 : len(s)-1]
 }
 
-type config struct {
-	SizeWatches map[string]int
-}
-
 func main() {
 	flag.Usage = usage
 	flag.Parse()
 	now := time.Now().Format("2006-01-02.15:04:05")
-
-	// load config if present.
-	cfg := &config{}
-	if cfgfile, err := os.ReadFile(path.Join(os.Getenv("HOME"), ".config/todo.cfg")); err == nil {
-		if err := json.Unmarshal(cfgfile, cfg); err != nil {
-			log.Fatalf("error parsing config json: %v.", err)
-		}
-	}
 
 	// invoke the flashcard app.
 	cmd := exec.Command("flashcard")
@@ -192,20 +179,28 @@ func main() {
 		fmt.Printf("tasks:\n  %s\n\n", strings.Join(activetasks, "\n  "))
 	}
 
-	// process the size watches if any.
-	var watchnotes []string
-	for f, sz := range cfg.SizeWatches {
-		s, err := os.Stat(f)
-		if err != nil {
-			watchnotes = append(watchnotes, "  "+err.Error())
+	// check for unread blog comments.
+	blogComments := strings.Split(strings.TrimSpace(readfile(".d/blog/comments.log")), "\n")
+	var unread []string
+	for _, line := range blogComments {
+		line := strings.TrimSpace(line)
+		if line == "# unread:" {
+			unread = make([]string, 0, 2)
+		}
+		if len(line) == 0 || line[0] == '#' {
 			continue
 		}
-		if s.Size() != int64(sz) {
-			watchnotes = append(watchnotes, fmt.Sprintf("  filesize of %s changed to %d", f, s.Size()))
+		if unread == nil {
+			continue
+		}
+		var timestamp int64
+		var post string
+		if _, err := fmt.Sscanf(line, "%d comment %s", &timestamp, &post); err == nil {
+			unread = append(unread, post)
 		}
 	}
-	if len(watchnotes) > 0 {
-		fmt.Printf("filewatches:\n%s\n\n", strings.Join(watchnotes, "\n"))
+	if len(unread) > 0 {
+		fmt.Printf("new blog comment(s): %s\n\n", strings.Join(unread, " "))
 	}
 
 	// now check emails.
