@@ -299,7 +299,7 @@ int main(int argc, char **argv) {
         FILE *f = popen(c, "r");
         CHECK(f != NULL);
         CHECK(fscanf(f, "%d", &ns.volume) == 1);
-        fclose(f);
+        pclose(f);
         goto volume_done;
       }
       snd_mixer_selem_channel_id_t ch = SND_MIXER_SCHN_MONO;
