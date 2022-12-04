@@ -30,7 +30,10 @@ func usage() {
 }
 
 func readfile(name string) string {
-	file := path.Join(os.Getenv("HOME"), name)
+	file := name
+	if !strings.HasPrefix(file, "/") {
+		file = path.Join(os.Getenv("HOME"), name)
+	}
 	content, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("couldn't read %s: %v", file, err)
@@ -180,7 +183,7 @@ func main() {
 	}
 
 	// check for unread blog comments.
-	blogComments := strings.Split(strings.TrimSpace(readfile(".d/blog/comments.log")), "\n")
+	blogComments := strings.Split(strings.TrimSpace(readfile("/dummy/blog/comments.log")), "\n")
 	var unread []string
 	for _, line := range blogComments {
 		line := strings.TrimSpace(line)
