@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # verify that chrome still has this feature.
-url=https://chromium.googlesource.com/chromium/src/+/master/components/omnibox/browser/omnibox_field_trial.cc?format=TEXT
+url=https://chromium.googlesource.com/chromium/src/+/main/components/omnibox/browser/omnibox_field_trial.cc?format=TEXT
 pattern=UIMaxAutocompleteMatchesByProvider
 if ! curl $url 2>/dev/null | base64 -d | grep -q $pattern; then
   # if this triggers then maybe talk to the chrome folks?
-  notify-send "can't disable autocomplete anymore? see the xchrome script."
+  echo "xchrome-fail" >/tmp/.sysstatmsg
 fi
 
 # start chrome with no autocompletion in its omnibox.
