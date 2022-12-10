@@ -117,6 +117,7 @@ func main() {
 	tasks := []string{}
 	tasktitle := map[string]string{}
 	taskready := map[string]bool{}
+	alltasks := map[string]bool{} // this includes subtasks too, the ones with . in them.
 	for _, file := range []string{"todo", ".backlog"} {
 		for _, line := range strings.Split(readfile(file), "\n") {
 			if len(line) < 2 || line[0] != '#' || line[1] == ' ' {
@@ -131,11 +132,25 @@ func main() {
 					return
 				}
 			}
-			if _, ok := taskready[t]; ok {
-				fmt.Printf("error: #%s is duplicated\n", t)
+			if _, ok := alltasks[t]; ok {
+				fmt.Printf("error: %s is duplicated\n", t)
+			}
+			alltasks[t] = true
+			if strings.IndexByte(t, '.') != -1 {
+				continue
 			}
 			taskready[t] = file == "todo"
 			tasktitle[t] = line
+		}
+	}
+	for t := range alltasks {
+		n, oldt := strings.LastIndexByte(t, '.'), ""
+		for n != -1 {
+			t, oldt = t[:n], t
+			if _, exists := alltasks[t]; !exists {
+				fmt.Printf("error: the parent for %s does not exist\n", oldt)
+			}
+			n = strings.LastIndexByte(t, '.')
 		}
 	}
 	hadbacklog := false
