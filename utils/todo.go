@@ -41,6 +41,17 @@ func readfile(name string) string {
 	return string(content)
 }
 
+func writefile(name, content string) {
+	fmt.Printf("rewriting %s.\n", name)
+	file := name
+	if !strings.HasPrefix(file, "/") {
+		file = path.Join(os.Getenv("HOME"), name)
+	}
+	if err := os.WriteFile(file, []byte(content), 0600); err != nil {
+		log.Fatalf("couldn't rewrite %s: %s", file, err)
+	}
+}
+
 // example:
 // input: =?utf-8?B?c3rFkWzFkSwgYmFuw6FuIGFs?= =?utf-8?Q?ma_di=C3=B3?= narancs
 // result: szőlő banán alma dió narancs
@@ -92,10 +103,28 @@ func trimquotes(s string) string {
 	return s[1 : len(s)-1]
 }
 
+// normalizedate normalizes "yyyymmdd" into a valid range.
+func normalizedate(s string, item string) string {
+	if len(s) < 8 {
+		return s
+	}
+	var yyyy, mm, dd int
+	if _, err := fmt.Sscanf(s, "%4d%2d%2d", &yyyy, &mm, &dd); err != nil {
+		return s
+	}
+	t := time.Date(yyyy, time.Month(mm), dd, 0, 0, 0, 0, time.Local)
+	norm := t.Format("20060102")
+	if norm == s[:8] {
+		return s
+	}
+	fmt.Printf("normalizing %q to %s (%s).\n", item, norm, t.Format("Mon"))
+	return norm + s[8:]
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
-	now := time.Now().Format("2006-01-02.15:04:05")
+	now := time.Now().Format("20060102.150405")
 
 	// invoke the flashcard app.
 	cmd := exec.Command("flashcard")
@@ -106,10 +135,23 @@ func main() {
 
 	// process the .rems file.
 	rems := []string{}
-	for _, line := range strings.Split(readfile(".rems"), "\n") {
-		if len(line) > 0 && line[0] != '#' && line <= now {
-			rems = append(rems, line)
+	oldrems := readfile(".rems")
+	newremsB := strings.Builder{}
+	newremsB.Grow(len(oldrems))
+	for _, line := range strings.Split(oldrems, "\n") {
+		norm := line
+		if len(line) >= 8 && line[0] != '#' {
+			norm = normalizedate(line, line)
 		}
+		if len(norm) > 0 && norm[0] != '#' && norm <= now {
+			rems = append(rems, norm)
+		}
+		newremsB.WriteString(norm)
+		newremsB.WriteByte('\n')
+	}
+	newrems := strings.TrimSpace(newremsB.String()) + "\n"
+	if newrems != oldrems {
+		writefile(".rems", newrems)
 	}
 
 	// process the todo files.
@@ -119,19 +161,30 @@ func main() {
 	taskready := map[string]bool{}
 	alltasks := map[string]bool{} // this includes subtasks too, the ones with . in them.
 	for _, file := range []string{"todo", ".backlog"} {
+		oldcontent := readfile(file)
+		newcontentB := strings.Builder{}
+		newcontentB.Grow(len(oldcontent))
 		for _, line := range strings.Split(readfile(file), "\n") {
 			if len(line) < 2 || line[0] != '#' || line[1] == ' ' {
+				newcontentB.WriteString(line)
+				newcontentB.WriteByte('\n')
 				continue
 			}
-			tasks = append(tasks, line)
-			fields := strings.Fields(line)
+			fields := strings.Split(line, " ")
 			t := fields[0]
-			for _, f := range fields {
+			for i, f := range fields {
 				if f == "b:urgent" {
 					fmt.Println(line)
 					return
 				}
+				if strings.HasPrefix(f, "b:20") {
+					fields[i] = "b:" + normalizedate(f[2:], line)
+				}
 			}
+			line = strings.TrimSpace(strings.Join(fields, " "))
+			tasks = append(tasks, line)
+			newcontentB.WriteString(line)
+			newcontentB.WriteByte('\n')
 			if _, ok := alltasks[t]; ok {
 				fmt.Printf("error: %s is duplicated\n", t)
 			}
@@ -141,6 +194,10 @@ func main() {
 			}
 			taskready[t] = file == "todo"
 			tasktitle[t] = line
+		}
+		newcontent := strings.TrimSpace(newcontentB.String()) + "\n"
+		if newcontent != oldcontent {
+			writefile(file, newcontent)
 		}
 	}
 	for t := range alltasks {
