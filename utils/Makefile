@@ -22,6 +22,7 @@ libs := \
 	-lrt \
 	-lssl \
 	-lX11 \
+	-lXcursor \
 	-lXext \
 	-lXss \
 

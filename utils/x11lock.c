@@ -1,6 +1,7 @@
 // this is just a silly child lock daemon for my machine.
 
 #define _GNU_SOURCE
+#include <X11/Xcursor/Xcursor.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/scrnsaver.h>
@@ -35,6 +36,7 @@ int errhandler(Display *dpy, XErrorEvent *ev) {
 
 Display *dpy;
 Window root, window;
+Cursor cursor;
 
 void lock(void) {
   XMapRaised(dpy, window);
@@ -43,7 +45,7 @@ void lock(void) {
   for (int i = 0; status != GrabSuccess && i < 10; i++) {
     usleep(50000);
     status = XGrabPointer(dpy, root, False, 0, GrabModeAsync, GrabModeAsync,
-                          None, None, CurrentTime);
+                          None, cursor, CurrentTime);
   }
   if (status != GrabSuccess) {
     XUnmapWindow(dpy, window);
@@ -85,6 +87,7 @@ void lock(void) {
   XUngrabKeyboard(dpy, CurrentTime);
   XUngrabPointer(dpy, CurrentTime);
   XUnmapWindow(dpy, window);
+  XDefineCursor(dpy, root, cursor);
   XFlush(dpy);
 }
 
@@ -181,6 +184,7 @@ int main(int argc, char **argv) {
       DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen),
       CWOverrideRedirect | CWBackPixel, &wa);
   XScreenSaverSelectInput(dpy, root, ScreenSaverNotifyMask);
+  cursor = XcursorLibraryLoadCursor(dpy, "arrow");
 
   // main loop.
   while (true) {
