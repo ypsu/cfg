@@ -207,7 +207,7 @@ function! Format()
     let filter = 'clang-format --assume-filename=' . expand("%:t")
   elseif &filetype == 'go'
     let filter = 'goimports'
-  elseif &filetype == 'javascript'
+  elseif &filetype == 'javascript' || &filetype == 'typescript'
     let filter = 'js-beautify --indent-size=2 --end-with-newline'
   else
     echo "no formatter for " . &filetype
