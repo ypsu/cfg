@@ -150,6 +150,9 @@ func main() {
 		newremsB.WriteByte('\n')
 	}
 	newrems := strings.TrimSpace(newremsB.String()) + "\n"
+	if newrems == "\n" {
+		newrems = ""
+	}
 	if newrems != oldrems {
 		writefile(".rems", newrems)
 	}
@@ -196,6 +199,9 @@ func main() {
 			tasktitle[t] = line
 		}
 		newcontent := strings.TrimSpace(newcontentB.String()) + "\n"
+		if newcontent == "\n" {
+			newcontent = ""
+		}
 		if newcontent != oldcontent {
 			writefile(file, newcontent)
 		}
