@@ -284,10 +284,16 @@ function SetGoCommands()
 	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
 endfunction
 
+" Keys for standalone typescript config file.
+function SetTSConfigCommands()
+	com! LT 1,$d | r ~/.template.tsconfig.json | 1d | 12
+endfunction
+
 " Set my beloved keys.
 autocmd BufEnter *.c call SetCCommands()
 autocmd BufEnter *.h,*.H,*.hxx,*.hpp,*.C,*.cpp,*.cxx,*.cc,*.cs call SetCPPCommands()
 autocmd BufEnter *.go call SetGoCommands()
+autocmd BufEnter tsconfig.json call SetTSConfigCommands()
 
 " Moving back and forth between lines of same or lower indentation.
 nnoremap <silent> [l :call NextIndent(0, 0, 0, 1)<CR>
