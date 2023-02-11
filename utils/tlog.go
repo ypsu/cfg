@@ -68,10 +68,7 @@ func main() {
 
 		// read note.
 		notebytes, err := os.ReadFile(notefile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(notebytes) == 0 {
+		if err != nil || len(notebytes) == 0 {
 			continue
 		}
 		note := strings.TrimSpace(string(notebytes))
