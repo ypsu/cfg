@@ -60,7 +60,7 @@ func main() {
 
 		// run vim.
 		os.Remove(notefile)
-		cmd := exec.Command("vim", notefile)
+		cmd := exec.Command("vim", "+star", notefile)
 		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 		if err := cmd.Run(); err != nil {
 			log.Fatalf("vim failed: %v", err)
