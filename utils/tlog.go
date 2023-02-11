@@ -34,9 +34,9 @@ func notifier() {
 			sleep = s.ModTime().Add(targetFreshness).Sub(time.Now())
 		}
 		if sleep < time.Minute {
+			os.Stdout.Write([]byte{7})
 			sleep = time.Minute
 		}
-		os.Stdout.Write([]byte{7})
 		time.Sleep(sleep)
 	}
 }
