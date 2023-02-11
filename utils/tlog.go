@@ -76,7 +76,7 @@ func main() {
 		note := strings.TrimSpace(string(notebytes))
 
 		// log note.
-		t := time.Now().UTC().Format("2006-01-02.15:04:05")
+		t := time.Now().Format("2006-01-02.15:04:05")
 		fmt.Fprintf(logfile, "%s %q\n", t, note)
 		fmt.Printf("%s %s\n", t, note)
 	}
