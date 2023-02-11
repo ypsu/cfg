@@ -6,6 +6,7 @@ else
   xsetroot -solid '#000'
 fi
 xsetroot -cursor_name arrow
+xset b off
 xset r rate 300 40
 xset s off
 xset -dpms
