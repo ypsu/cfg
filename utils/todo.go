@@ -153,7 +153,7 @@ func main() {
 	if newrems == "\n" {
 		newrems = ""
 	}
-	if newrems != oldrems {
+	if strings.TrimSpace(newrems) != strings.TrimSpace(oldrems) {
 		writefile(".rems", newrems)
 	}
 
@@ -202,7 +202,7 @@ func main() {
 		if newcontent == "\n" {
 			newcontent = ""
 		}
-		if newcontent != oldcontent {
+		if strings.TrimSpace(newcontent) != strings.TrimSpace(oldcontent) {
 			writefile(file, newcontent)
 		}
 	}
