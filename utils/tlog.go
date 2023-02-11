@@ -26,17 +26,18 @@ var notefile = "/tmp/.tnote"
 
 // notifier continuously alerts whenever the last edit on the note file seems too old.
 func notifier() {
-	const target = 20 * time.Minute
+	const targetFreshness = 20 * time.Minute
 	for {
-		time.Sleep(target)
-		for {
-			s, err := os.Stat(notefile)
-			if err == nil && time.Now().Sub(s.ModTime()) < target {
-				break
-			}
-			os.Stdout.Write([]byte{7})
-			time.Sleep(1 * time.Minute)
+		var sleep time.Duration
+		s, err := os.Stat(notefile)
+		if err == nil {
+			sleep = s.ModTime().Add(targetFreshness).Sub(time.Now())
 		}
+		if sleep < time.Minute {
+			sleep = time.Minute
+		}
+		os.Stdout.Write([]byte{7})
+		time.Sleep(sleep)
 	}
 }
 
