@@ -18,6 +18,8 @@ func usage() {
 	fmt.Fprintln(out, "tlog: timestamped logging.")
 	fmt.Fprintln(out, "every 20 minutes starts alerting to enter an update.")
 	fmt.Fprintln(out, "just press enter to start vim, save the update, and quit.")
+	fmt.Fprintln(out, "or if the tlog daemon is running then `tlog [my update here]` also works.")
+	fmt.Fprintln(out, "in that case tlog sends a sigusr1 to the daemon to save the update from the args.")
 	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "flags:")
 	flag.PrintDefaults()
