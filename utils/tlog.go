@@ -6,8 +6,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -41,6 +43,16 @@ func notifier() {
 	}
 }
 
+// watchenter sends a true on the channel whenever the user presses enter.
+func watchenter(ch chan<- bool) {
+	buf := make([]byte, 8)
+	for {
+		os.Stdin.Read(buf)
+		os.Stdout.WriteString("\033[A") // move the cursor back up.
+		ch <- true
+	}
+}
+
 func main() {
 	flag.Usage = usage
 	flag.Parse()
@@ -70,18 +82,25 @@ func main() {
 
 	go notifier()
 
-	buf := make([]byte, 8)
-	for {
-		// wait for enter.
-		os.Stdin.Read(buf)
-		os.Stdout.WriteString("\033[A") // move the cursor back up.
+	enterch := make(chan bool)
+	go watchenter(enterch)
 
-		// run vim.
-		os.Remove(notefile)
-		cmd := exec.Command("vim", "+star", notefile)
-		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-		if err := cmd.Run(); err != nil {
-			log.Fatalf("vim failed: %v", err)
+	sigch := make(chan os.Signal)
+	signal.Notify(sigch, syscall.SIGUSR1)
+
+	lastnote := ""
+	for {
+		select {
+		case <-enterch:
+			// run vim.
+			os.Remove(notefile)
+			cmd := exec.Command("vim", "+star", notefile)
+			cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+			if err := cmd.Run(); err != nil {
+				log.Fatalf("vim failed: %v", err)
+			}
+		case <-sigch:
+			// no need to do anything, just reread the file.
 		}
 
 		// read note.
@@ -90,6 +109,11 @@ func main() {
 			continue
 		}
 		note := strings.TrimSpace(string(notebytes))
+		if note == lastnote {
+			fmt.Println("warning: skipped entering same note again.")
+			continue
+		}
+		lastnote = note
 
 		// log note.
 		t := time.Now().Format("2006-01-02.15:04:05")
