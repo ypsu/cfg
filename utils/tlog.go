@@ -33,7 +33,7 @@ func notifier() {
 	const targetFreshness = 29 * time.Minute
 	for {
 		var sleep time.Duration
-		s, err := os.Stat(notefile)
+		s, err := os.Stat(*logfileFlag)
 		if err == nil {
 			sleep = s.ModTime().Add(targetFreshness).Sub(time.Now())
 		}
