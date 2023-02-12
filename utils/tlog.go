@@ -45,14 +45,12 @@ func notifier() {
 	}
 }
 
-// watchenter sends a true on the channel whenever the user presses enter.
-func watchenter(ch chan<- bool) {
+// awaitenter sends a true on the channel when the user presses enter.
+func awaitenter(ch chan<- bool) {
 	buf := make([]byte, 8)
-	for {
-		os.Stdin.Read(buf)
-		os.Stdout.WriteString("\033[A") // move the cursor back up.
-		ch <- true
-	}
+	os.Stdin.Read(buf)
+	os.Stdout.WriteString("\033[A") // move the cursor back up.
+	ch <- true
 }
 
 func main() {
@@ -85,7 +83,7 @@ func main() {
 	go notifier()
 
 	enterch := make(chan bool)
-	go watchenter(enterch)
+	go awaitenter(enterch)
 
 	sigch := make(chan os.Signal)
 	signal.Notify(sigch, syscall.SIGUSR1)
@@ -101,6 +99,7 @@ func main() {
 			if err := cmd.Run(); err != nil {
 				log.Fatalf("vim failed: %v", err)
 			}
+			go awaitenter(enterch)
 		case <-sigch:
 			// no need to do anything, just reread the file.
 		}
