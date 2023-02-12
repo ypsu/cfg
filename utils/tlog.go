@@ -75,7 +75,13 @@ func main() {
 
 		// log note.
 		t := time.Now().Format("2006-01-02.15:04:05")
-		fmt.Fprintf(logfile, "%s %q\n", t, note)
-		fmt.Printf("%s %s\n", t, note)
+		for _, line := range strings.Split(note, "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			fmt.Fprintf(logfile, "%s %s\n", t, line)
+			fmt.Printf("%s %s\n", t, line)
+		}
 	}
 }
