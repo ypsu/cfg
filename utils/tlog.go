@@ -45,10 +45,28 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
+	if flag.NArg() > 0 {
+		// write to the notefile.
+		logfile, err := os.OpenFile(notefile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Fprintln(logfile, strings.Join(flag.Args(), " "))
+		logfile.Close()
+
+		// wake the server up to append it to the tlogfile.
+		exec.Command("killall", "-USR1", "tlog").Run()
+
+		// clear the bell.
+		exec.Command("tmux", "select-window", "-t", "4", ";", "select-window", "-l").Run()
+		return
+	}
+
 	logfile, err := os.OpenFile(*logfileFlag, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer logfile.Close()
 
 	go notifier()
 
