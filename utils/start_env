@@ -22,7 +22,7 @@ if tmux has-session 2>/dev/null; then
   exit
 fi
 
-if "$hostname" = eper; then
+if test "$hostname" = eper; then
   alert startupalert "start gdsnap and my server"
 fi
 
