@@ -19,7 +19,7 @@ import (
 
 func usage() {
 	out := flag.CommandLine.Output()
-	fmt.Fprintln(out, `todo: summarizes todo, .backlog, .rems, and emails.`)
+	fmt.Fprintln(out, `todo: summarizes todo, .tasks, .backlog, .rems, and emails.`)
 	fmt.Fprintln(out, ``)
 	fmt.Fprintln(out, `todo entries have the format "#name summary [blockers]"`)
 	fmt.Fprintln(out, `blockers can be the following:`)
@@ -163,7 +163,7 @@ func main() {
 	tasktitle := map[string]string{}
 	taskready := map[string]bool{}
 	alltasks := map[string]bool{} // this includes subtasks too, the ones with . in them.
-	for _, file := range []string{"todo", ".backlog"} {
+	for _, file := range []string{"todo", ".tasks", ".backlog"} {
 		oldcontent := readfile(file)
 		newcontentB := strings.Builder{}
 		newcontentB.Grow(len(oldcontent))
