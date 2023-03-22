@@ -1,7 +1,7 @@
 #!/bin/bash
 
 pts=$(tmux display-message -p '#{client_tty}' | sed s:/dev/::)
-pid=$(ps a | grep tmux | grep "$pts " | awk '{print $1}')
+pid=$(pgrep -t "$pts" tmux)
 if test "$pid" = ""; then
 	exit 1
 fi
