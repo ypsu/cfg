@@ -2,8 +2,10 @@
 // there are more complicated ones:
 // - https://github.com/pyllyukko/user.js
 // - https://github.com/arkenfox/user.js
+// - https://gist.github.com/gagarine/5cf8f861abe0dd035b7af19e4f691cd8
 // but i don't care about that level of detail.
 user_pref("browser.aboutConfig.showWarning", false);
+user_pref("browser.cache.disk.enable", false);
 user_pref("browser.contentblocking.category", "strict");
 user_pref("browser.download.panel.shown", true);
 user_pref("browser.download.useDownloadDir", false);
@@ -11,6 +13,7 @@ user_pref("browser.formfill.enable", false);
 user_pref("browser.newtabpage.enabled", false);
 user_pref("browser.rights.3.shown", true);
 user_pref("browser.search.suggest.enabled", false);
+user_pref("browser.sessionstore.interval", 6000000);
 user_pref("browser.startup.homepage", "about:blank");
 user_pref("browser.tabs.closeWindowWithLastTab", false);
 user_pref("browser.urlbar.shortcuts.bookmarks", false);
