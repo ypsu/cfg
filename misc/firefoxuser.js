@@ -24,6 +24,7 @@ user_pref("browser.urlbar.suggest.history", false);
 user_pref("browser.urlbar.suggest.openpage", false);
 user_pref("browser.urlbar.suggest.topsites", false);
 user_pref("datareporting.healthreport.uploadEnabled", false);
+user_pref("datareporting.policy.dataSubmissionEnabled", false);
 user_pref("devtools.everOpened", true);
 user_pref("font.default.x-western", "sans-serif");
 user_pref("general.smoothScroll", false);
