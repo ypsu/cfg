@@ -130,7 +130,7 @@ loadkeys -d
 loadkeys /home/rlblaster/.d/cfg/misc/loadkeys.cfg
 kbdrate -d 300 -r 40
 eper mkdir -p /tmp/cache/go-build
-ipi mkdir -p /tmp/cache/{go-build,mozilla}
+ipi mkdir -p /tmp/cache/{go-build,mesa_shader_cache,mozilla}
 eper chown -R rlblaster:users /tmp/cache
 ipi chown -R rlblaster:users /tmp/cache
 
@@ -138,14 +138,16 @@ echo Setting kernel variables
 echo 1 > /proc/sys/kernel/sysrq
 echo 100 > /proc/sys/vm/dirty_background_ratio
 echo 100 > /proc/sys/vm/dirty_ratio
-echo 30000 > /proc/sys/vm/dirty_expire_centisecs
-echo 18000 > /proc/sys/vm/dirty_writeback_centisecs
-echo 262144 > /proc/sys/vm/min_free_kbytes
+echo 30000 > /proc/sys/vm/dirty_expire_centisecs     # 5m
+echo 18000 > /proc/sys/vm/dirty_writeback_centisecs  # 3m
+echo 1800 > /proc/sys/vm/dirtytime_expire_seconds    # 30m
 if test "$hostname" = eper; then
-  echo 360000 > /proc/sys/vm/dirty_expire_centisecs
-  echo 360000 > /proc/sys/vm/dirty_writeback_centisecs
-  echo 3600 > /proc/sys/vm/dirtytime_expire_seconds
-  echo 16384 > /proc/sys/vm/min_free_kbytes
+  echo 360000 > /proc/sys/vm/dirty_expire_centisecs    # 1h
+  echo 360000 > /proc/sys/vm/dirty_writeback_centisecs # 1h
+fi
+if test "$hostname" = ipi; then
+  echo 1800000 > /proc/sys/vm/dirty_expire_centisecs   # 30 minutes
+  echo 900000 > /proc/sys/vm/dirty_writeback_centisecs # 15 minutes
 fi
 
 log Setting time

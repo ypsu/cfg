@@ -9,6 +9,9 @@ if ! ps auxw | grep -v grep | grep -q 'sysstat\>'; then
     audio=none
     delay=10000
   fi
+  if test "$(hostname)" = "ipi"; then
+    network=wlan0
+  fi
   if test "$(hostname)" = "paks"; then
     network=eno1
   fi
