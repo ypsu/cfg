@@ -150,8 +150,8 @@ if test "$hostname" = ipi; then
   echo 900000 > /proc/sys/vm/dirty_writeback_centisecs # 15 minutes
 fi
 
-log Setting time
-eperipi sntp || sntp || sntp || sntp  # Try 4 times just in case.
+log Setting time, 6 attempts
+eperipi sntp || sntp || sntp || sntp || sntp || sntp
 
 if test "$(hostname)" = "paks"; then
   log Starting X in the background
@@ -159,6 +159,11 @@ if test "$(hostname)" = "paks"; then
   PATH=/home/rlblaster/.bin:$PATH su -c "startx -- vt7 -nolisten tcp" rlblaster 2>/dev/null >&2 &
   cd - >/dev/null
 fi
+
+log Starting dbus
+mkdir /run/dbus
+ ipi dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
+paks dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
 
 log Starting ttys
 paks agetty -8 -a rlblaster -o "-p -f rlblaster" --noclear 38400 tty2 linux &
