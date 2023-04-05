@@ -143,6 +143,7 @@ func toMarkdown(inputbuf []byte) []byte {
 func handlePreview(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte(`<head><title>basimark</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name=color-scheme content='light dark'>
 <style>body{font-family:sans-serif}</style></head>
 <body><div id=hcontent>this needs javascript.</div>
 <script>
