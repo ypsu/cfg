@@ -17,3 +17,7 @@ for dir in $dirs; do
     cp -vi $src $dst
   fi
 done
+
+echo
+echo "and once ublock is installed, add this to 'my filters' to disable service workers:"
+echo "||$csp=worker-src 'none',domain=~exampledomain.com"
