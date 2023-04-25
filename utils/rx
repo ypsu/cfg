@@ -20,4 +20,5 @@ if test "$HOSTNAME" != ipi; then
 fi
 xset +fp ~/.fonts
 xrdb ~/.Xdefaults
+setxkbmap -option caps:escape
 xmodmap ~/.xmodmap
