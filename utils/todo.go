@@ -122,6 +122,12 @@ func normalizedate(s string, item string) string {
 }
 
 func main() {
+	// prefer running wtodo if available.
+	if p, err := exec.LookPath("wtodo"); err == nil {
+		exec.Command(p).Run()
+		return
+	}
+
 	flag.Usage = usage
 	flag.Parse()
 	now := time.Now().Format("20060102.150405")
