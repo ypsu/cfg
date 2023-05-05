@@ -124,7 +124,9 @@ func normalizedate(s string, item string) string {
 func main() {
 	// prefer running wtodo if available.
 	if p, err := exec.LookPath("wtodo"); err == nil {
-		exec.Command(p).Run()
+		cmd := exec.Command(p)
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+		cmd.Run()
 		return
 	}
 
