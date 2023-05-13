@@ -34,7 +34,6 @@ user_pref("network.cookie.cookieBehavior", 5);
 user_pref("privacy.trackingprotection.enabled", true);
 user_pref("privacy.trackingprotection.socialtracking.enabled", true);
 user_pref("signon.rememberSignons", false);
-user_pref("signon.rememberSignons", false);
 user_pref("ui.caretBlinkTime", 0);
 user_pref("ui.prefersReducedMotion", 1);
 
