@@ -76,7 +76,7 @@ func decodeRFC2047(s string) string {
 		var err error
 		if f[2] == "B" {
 			d, err = base64.StdEncoding.DecodeString(f[3])
-		} else if f[2] == "Q" {
+		} else if f[2] == "q" || f[2] == "Q" {
 			ssrd := strings.NewReader(strings.ReplaceAll(f[3], "_", " "))
 			d, err = io.ReadAll(quotedprintable.NewReader(ssrd))
 		} else {
