@@ -56,7 +56,7 @@ func run() error {
 
 	// run the initial sync from disk to mem.
 	log.Print("syncing to memory")
-	tomemCmd := exec.Command("/usr/bin/rsync", "-clr", diskdir+"/", memdir)
+	tomemCmd := exec.Command("/usr/bin/rsync", "--delete", "-clr", diskdir+"/", memdir)
 	tomemCmd.Stdout, tomemCmd.Stderr = os.Stdout, os.Stderr
 	if err := tomemCmd.Run(); err != nil {
 		return fmt.Errorf("disk to mem rsync: %w", err)
@@ -90,7 +90,7 @@ func run() error {
 
 		// sync back the memory to disk.
 		log.Print("syncing to disk")
-		tomemCmd := exec.Command("/usr/bin/rsync", "-clr", memdir+"/", diskdir)
+		tomemCmd := exec.Command("/usr/bin/rsync", "--delete", "-clr", memdir+"/", diskdir)
 		tomemCmd.Stdout, tomemCmd.Stderr = os.Stdout, os.Stderr
 		if err := tomemCmd.Run(); err != nil {
 			log.Printf("error syncing back to disk: %v", err)
