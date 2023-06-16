@@ -269,17 +269,11 @@ func main() {
 	}
 
 	// check for unread blog comments.
-	blogComments := strings.Split(strings.TrimSpace(readfile("/dummy/blog/comments.log")), "\n")
+	blogComments := strings.Split(strings.TrimSpace(readfile("/dummy/blog/comments.log.new")), "\n")
 	var unread []string
 	for _, line := range blogComments {
 		line := strings.TrimSpace(line)
-		if line == "# unread:" {
-			unread = make([]string, 0, 2)
-		}
 		if len(line) == 0 || line[0] == '#' {
-			continue
-		}
-		if unread == nil {
 			continue
 		}
 		var timestamp int64
