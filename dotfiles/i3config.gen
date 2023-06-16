@@ -30,24 +30,24 @@ font -xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec xterm
-bindsym $mod+Escape exec xterm
-bindsym $mod+Shift+Return exec xterm -name XM-floating
-bindsym $mod+Shift+Escape exec xterm -name XM-floating
+bindsym $mod+Return exec --no-startup-id xterm
+bindsym $mod+Escape exec --no-startup-id xterm
+bindsym $mod+Shift+Return exec --no-startup-id xterm -name XM-floating
+bindsym $mod+Shift+Escape exec --no-startup-id xterm -name XM-floating
 
 # other hotkeys
-bindsym $mod+t exec links -g
-bindsym $mod+Mod1+l exec x11lock activate
-bindsym $mod+Scroll_Lock exec x11lock activate
-bindsym $mod+Mod1+p exec srec -k && systemctl suspend && x11lock activate
-bindsym $mod+Pause exec srec -k && systemctl suspend && x11lock activate
+bindsym $mod+t exec --no-startup-id links -g
+bindsym $mod+Mod1+l exec --no-startup-id x11lock activate
+bindsym $mod+Scroll_Lock exec --no-startup-id x11lock activate
+bindsym $mod+Mod1+p exec --no-startup-id srec -k && systemctl suspend && x11lock activate
+bindsym $mod+Pause exec --no-startup-id srec -k && systemctl suspend && x11lock activate
 for_window [title="Latex to Unicode converter"] floating enable
 for_window [window_role="pop-up"] floating enable
 
-bindsym $mod+F11 exec voldec
-bindsym XF86AudioLowerVolume exec voldec
-bindsym $mod+F12 exec volinc
-bindsym XF86AudioRaiseVolume exec volinc
+bindsym $mod+F11 exec --no-startup-id voldec
+bindsym XF86AudioLowerVolume exec --no-startup-id voldec
+bindsym $mod+F12 exec --no-startup-id volinc
+bindsym XF86AudioRaiseVolume exec --no-startup-id volinc
 
 # last focused workspace
 bindsym $mod+z workspace back_and_forth
@@ -58,15 +58,15 @@ bindsym --release button2 kill
 bindsym --whole-window $mod+button2 kill
 
 # start dmenu (a program launcher)
-bindsym $mod+d exec PATH=$PATH:$HOME/.bin dmenu_run
+bindsym $mod+d exec --no-startup-id PATH=$PATH:$HOME/.bin dmenu_run
 
 # change focus
 bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
 bindsym $mod+l focus right
-bindsym $mod+Tab exec i3next
-bindsym $mod+grave exec i3next -p
+bindsym $mod+Tab exec --no-startup-id i3next
+bindsym $mod+grave exec --no-startup-id i3next -p
 
 # alternatively, you can use the cursor keys:
 bindsym $mod+Left focus left
@@ -154,7 +154,7 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 
 # startup stuff
-exec xterm -e start_env
+exec --no-startup-id xterm -e start_env
 
 # colors
 # class                 border  backgr. text    indicator actualborder
@@ -194,8 +194,8 @@ bindsym $mod+r mode "resize"
 bar {
         position top
         status_command sysstat_tailer
-        bindsym button4 exec volinc
-        bindsym button5 exec voldec
+        bindsym button4 exec --no-startup-id volinc
+        bindsym button5 exec --no-startup-id voldec
 
         colors {
                 urgent_workspace #ffff00 #ffff00 #000000
