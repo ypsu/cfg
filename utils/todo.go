@@ -176,7 +176,7 @@ func main() {
 		newcontentB := strings.Builder{}
 		newcontentB.Grow(len(oldcontent))
 		for _, line := range strings.Split(readfile(file), "\n") {
-			if len(line) < 2 || line[0] != '#' || line[1] == ' ' {
+			if len(line) < 2 || line[0] != '#' || line[1] < '0' {
 				newcontentB.WriteString(line)
 				newcontentB.WriteByte('\n')
 				continue
