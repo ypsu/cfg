@@ -1,130 +1,91 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path"
 	"strings"
-	"syscall"
 	"time"
 )
 
-func usage() {
-	out := flag.CommandLine.Output()
-	fmt.Fprintln(out, "tlog: timestamped logging.")
-	fmt.Fprintln(out, "every 20 minutes starts alerting to enter an update.")
-	fmt.Fprintln(out, "just press enter to start vim, save the update, and quit.")
-	fmt.Fprintln(out, "or if the tlog daemon is running then `tlog [my update here]` also works.")
-	fmt.Fprintln(out, "in that case tlog sends a sigusr1 to the daemon to save the update from the args.")
-	fmt.Fprintln(out, "")
-	fmt.Fprintln(out, "flags:")
-	flag.PrintDefaults()
-}
-
-var logfileFlag = flag.String("l", path.Join(os.Getenv("HOME"), ".tlog"), "logfile to append to.")
+var logfile = path.Join(os.Getenv("HOME"), ".tlog")
 var notefile = "/tmp/.tnote"
 
-// notifier continuously alerts whenever the last edit on the note file seems too old.
-func notifier() {
-	const targetFreshness = 29 * time.Minute
-	for {
-		var sleep time.Duration
-		s, err := os.Stat(*logfileFlag)
-		if err == nil {
-			sleep = s.ModTime().Add(targetFreshness).Sub(time.Now())
-		}
-		if sleep < time.Minute {
-			os.Stdout.Write([]byte{7})
-			sleep = time.Minute
-		}
-		time.Sleep(sleep)
-	}
-}
-
-// awaitenter sends a true on the channel when the user presses enter.
-func awaitenter(ch chan<- bool) {
-	buf := make([]byte, 8)
-	os.Stdin.Read(buf)
-	os.Stdout.WriteString("\033[A") // move the cursor back up.
-	ch <- true
-}
-
 func main() {
-	flag.Usage = usage
-	flag.Parse()
-
-	if flag.NArg() > 0 {
-		// write to the notefile.
-		logfile, err := os.OpenFile(notefile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Fprintln(logfile, strings.Join(flag.Args(), " "))
-		logfile.Close()
-
-		// wake the server up to append it to the tlogfile.
-		exec.Command("killall", "-USR1", "tlog").Run()
-
-		// clear the bell.
-		exec.Command("tmux", "select-window", "-t", "4", ";", "select-window", "-l").Run()
+	// usage.
+	if len(os.Args) == 2 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
+		fmt.Println("tlog: timestamped logging.")
+		fmt.Println("")
+		fmt.Println("usage:")
+		fmt.Println("  tlog: start vim to enter a note to append with the current timestamp.")
+		fmt.Println("  tlog -w: start a daemon that continuously alerts while the last note is stale.")
+		fmt.Println("  tlog [msg...]: appends msg to the notefile with the current timestamp.")
 		return
 	}
 
-	logfile, err := os.OpenFile(*logfileFlag, os.O_APPEND|os.O_WRONLY, 0644)
+	// notifier daemon.
+	if len(os.Args) == 2 && os.Args[1] == "-w" {
+		cmd := exec.Command("tail", "-f", logfile)
+		cmd.Stdout, cmd.Stderr = os.Stderr, os.Stdout
+		cmd.Start()
+		const targetFreshness = 29 * time.Minute
+		for {
+			var sleep time.Duration
+			s, err := os.Stat(logfile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			sleep = s.ModTime().Add(targetFreshness).Sub(time.Now())
+			if sleep < time.Minute {
+				os.Stdout.Write([]byte{7})
+				sleep = time.Minute
+			}
+			time.Sleep(sleep)
+		}
+	}
+
+	// open the tlogfile.
+	// doing it early also checks that the system is tlog-ready before starting vim.
+	f, err := os.OpenFile(logfile, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer logfile.Close()
+	defer f.Close()
 
-	go notifier()
-
-	enterch := make(chan bool)
-	go awaitenter(enterch)
-
-	sigch := make(chan os.Signal)
-	signal.Notify(sigch, syscall.SIGUSR1)
-
-	lastnote := ""
-	for {
-		select {
-		case <-enterch:
-			// run vim.
-			os.Remove(notefile)
-			cmd := exec.Command("vim", "+star", notefile)
-			cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-			if err := cmd.Run(); err != nil {
-				log.Fatalf("vim failed: %v", err)
-			}
-			go awaitenter(enterch)
-		case <-sigch:
-			// no need to do anything, just reread the file.
+	// read note via vim or args.
+	var note string
+	if len(os.Args) == 1 {
+		os.Remove(notefile)
+		cmd := exec.Command("vim", "+star", notefile)
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Fatalf("launch vim: %v", err)
 		}
-
-		// read note.
-		notebytes, err := os.ReadFile(notefile)
-		if err != nil || len(notebytes) == 0 {
-			continue
+		buf, err := os.ReadFile(notefile)
+		if err != nil {
+			log.Fatal(err)
 		}
-		note := strings.TrimSpace(string(notebytes))
-		if note == lastnote {
-			fmt.Println("warning: skipped entering same note again.")
-			continue
+		if len(buf) == 0 {
+			log.Fatal("notefile empty.")
 		}
-		lastnote = note
-
-		// log note.
-		t := time.Now().Format("2006-01-02.15:04:05")
-		for _, line := range strings.Split(note, "\n") {
-			line = strings.TrimSpace(line)
-			if line == "" {
-				continue
-			}
-			fmt.Fprintf(logfile, "%s %s\n", t, line)
-			fmt.Printf("%s %s\n", t, line)
-		}
+		note = string(buf)
+	} else {
+		note = strings.Join(os.Args[1:], " ")
 	}
+	note = strings.TrimSpace(note)
+
+	// append message.
+	t := time.Now().Format("2006-01-02.15:04:05")
+	for _, line := range strings.Split(note, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		fmt.Fprintf(f, "%s %s\n", t, line)
+	}
+
+	// clear the bell.
+	exec.Command("tmux", "select-window", "-t", "4", ";", "select-window", "-l").Run()
 }
