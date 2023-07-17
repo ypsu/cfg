@@ -37,7 +37,11 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			sleep = s.ModTime().Add(targetFreshness).Sub(time.Now())
+			now := time.Now()
+			sleep = s.ModTime().Add(targetFreshness).Sub(now)
+			if now.Hour() <= 7 || 19 <= now.Hour() {
+				sleep = targetFreshness
+			}
 			if sleep < time.Minute {
 				os.Stdout.Write([]byte{7})
 				sleep = time.Minute
