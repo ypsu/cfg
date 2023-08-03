@@ -345,7 +345,7 @@ func main() {
 			}
 			if len(titles) > 0 {
 				sort.Strings(titles)
-				c.result <- fmt.Sprintf("%s:\n%s", c.user, strings.Join(titles, "\n"))
+				c.result <- fmt.Sprintf("%s:\n%s\n", c.user, strings.Join(titles, "\n"))
 			} else {
 				c.result <- ""
 			}
