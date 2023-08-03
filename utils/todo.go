@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -322,29 +323,29 @@ func main() {
 				c.result <- fmt.Sprintf("failed reading from %s: %v\n", c.user, err)
 				return
 			}
-			summary := ""
-			print := false
+			var titles []string
+			var title string
 			for _, line := range strings.Split(string(reply), "\r\n") {
 				if fetchRE.MatchString(line) {
-					print = true
 					if strings.Contains(line, `\Seen`) {
-						summary += "    "
+						title += "    "
 					} else {
-						summary += "  u "
+						title += "  u "
 					}
 				} else if len(line) == 0 {
-					if print {
-						print = false
-						summary += "\n"
+					if title != "" {
+						titles = append(titles, title)
+						title = ""
 					}
 				} else if strings.HasPrefix(line, "Subject: ") {
-					summary += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
-				} else if print {
-					summary += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
+					title += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
+				} else if title != "" {
+					title += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
 				}
 			}
-			if len(summary) > 0 {
-				c.result <- fmt.Sprintf("%s:\n%s", c.user, summary)
+			if len(titles) > 0 {
+				sort.Strings(titles)
+				c.result <- fmt.Sprintf("%s:\n%s", c.user, strings.Join(titles, "\n"))
 			} else {
 				c.result <- ""
 			}
