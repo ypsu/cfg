@@ -62,8 +62,8 @@ func toHTML(inputbuf []byte, autolinks []byte) []byte {
 	if len(autolinks) == 0 {
 		autolinks = []byte("__autolink_placeholder__")
 	}
-	re := regexp.MustCompile(`\b((http(s)?://([-.a-z0-9]+)/?)|(` + string(autolinks) + `)/)(\S*)?\b`)
-	input = re.ReplaceAllString(input, "<a href='http$3://$4$5/$6'>$0</a>")
+	re := regexp.MustCompile(`\b((http(s)?://([-.a-z0-9]+)/?)|(` + string(autolinks) + `)/)(\S*)?\b(/)?`)
+	input = re.ReplaceAllString(input, "<a href='http$3://$4$5/$6$7'>$0</a>")
 
 	// add a some styling.
 	output.WriteString("<div style=max-width:50em>")
