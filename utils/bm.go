@@ -92,7 +92,7 @@ func toHTML(inputbuf []byte, autolinks []byte) []byte {
 				output.WriteString("</li><li>")
 				line = "<!-- - -->" + strings.TrimLeft(line[2:], " ")
 			}
-		} else if strings.HasPrefix(line, "# ") {
+		} else if strings.HasPrefix(line, "# ") || strings.HasPrefix(line, "## ") {
 			if m != noneMode {
 				log.Fatalf("line %d: # must be starting its own paragraph: %s", ln+1, line)
 			}
@@ -191,7 +191,10 @@ func readContent(fFlag, tFlag string) ([]byte, error) {
 		var curItem string
 		var todoContent bytes.Buffer
 		for _, line := range bytes.Split(content, []byte("\n")) {
-			if bytes.HasPrefix(line, []byte("#")) {
+			if len(line) >= 2 && line[0] == '#' && line[1] >= '0' {
+				if len(line) == 1 || line[1] < '0' || 'z' < line[1] {
+					continue
+				}
 				var item []byte
 				for i := 1; i < len(line) && !unicode.IsSpace(rune(line[i])); i++ {
 					item = line[1 : i+1]
