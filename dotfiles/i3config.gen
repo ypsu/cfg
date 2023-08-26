@@ -30,10 +30,10 @@ font -xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec --no-startup-id xterm -class bwterm
-bindsym $mod+Escape exec --no-startup-id xterm -class bwterm
-bindsym $mod+Shift+Return exec --no-startup-id xterm -name XM-floating -class bwterm
-bindsym $mod+Shift+Escape exec --no-startup-id xterm -name XM-floating -class bwterm
+bindsym $mod+Return exec --no-startup-id dterm
+bindsym $mod+Escape exec --no-startup-id dterm
+bindsym $mod+Shift+Return exec --no-startup-id dterm -name XM-floating
+bindsym $mod+Shift+Escape exec --no-startup-id dterm -name XM-floating
 
 # other hotkeys
 bindsym $mod+t exec --no-startup-id links -g
@@ -154,7 +154,7 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 
 # startup stuff
-exec --no-startup-id xterm -e start_env -class bwterm
+exec --no-startup-id dterm -e start_env
 
 # colors
 # class                 border  backgr. text    indicator actualborder

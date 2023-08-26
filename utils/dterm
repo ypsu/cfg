@@ -1,0 +1,8 @@
+#!/bin/bash
+# starts the default terminal for me.
+
+if test "$HOSTNAME" = ipi; then
+  exec xterm -class bwterm "$@"
+else
+  exec xterm "$@"
+fi
