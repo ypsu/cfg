@@ -20,7 +20,14 @@ alias vim='vim -X'
 alias links="links -html-text-color 15 -html-link-color 3"
 
 function sshenv {
-	. ~/.bin/sshenv
+  . ~/.bin/sshenv
+}
+
+# cd to the path of the file that is currently opened in vim.
+function cdv {
+  path="$(vimpath)"
+  echo "$path"
+  cd "$(dirname "$path")"
 }
 
 unset command_not_found_handle
