@@ -23,6 +23,13 @@ function sshenv {
   . ~/.bin/sshenv
 }
 
+function fly {
+  export FLYCTL_INSTALL="$HOME/.fly"
+  export PATH="$PATH:$FLYCTL_INSTALL/bin"
+  unset -f fly
+  fly "$@"
+}
+
 # cd to the path of the file that is currently opened in vim.
 function cdv {
   path="$(vimpath)"
