@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"mime/quotedprintable"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -269,23 +270,49 @@ func main() {
 		fmt.Printf("tasks:\n  %s\n\n", strings.Join(activetasks, "\n  "))
 	}
 
-	// check for unread blog comments.
-	blogComments := strings.Split(strings.TrimSpace(readfile("/dummy/blog/comments.log.new")), "\n")
-	var unread []string
-	for _, line := range blogComments {
-		line := strings.TrimSpace(line)
-		if len(line) == 0 || line[0] == '#' {
-			continue
+	// check for new comments on my blog.
+	blogch := make(chan string, 1)
+	go func() {
+		err := func() error {
+			r, err := http.Get("https://iio.ie/commentsapi?new")
+			if err != nil {
+				return err
+			}
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+			r.Body.Close()
+			if len(body) == 0 {
+				blogch <- ""
+				return nil
+			}
+
+			var tm int64
+			var directive, post, content, response string
+			posts := map[string]bool{}
+			for _, line := range strings.Split(string(body), "\n") {
+				line := strings.TrimSpace(line)
+				if line == "" || line[0] == '#' {
+					continue
+				}
+				if _, err := fmt.Sscanf(line, "%d %s %s %q %q", &tm, &directive, &post, &content, &response); err != nil {
+					return fmt.Errorf("parsing %q failed: %v", err)
+				}
+				posts[post] = true
+			}
+			sortedPosts := make([]string, 0, len(posts))
+			for p := range posts {
+				sortedPosts = append(sortedPosts, p)
+			}
+			sort.Strings(sortedPosts)
+			blogch <- fmt.Sprintf("new blog comments: %s\n\n", strings.Join(sortedPosts, " "))
+			return nil
+		}()
+		if err != nil {
+			blogch <- fmt.Sprintf("blog check failed: %v\n", err)
 		}
-		var timestamp int64
-		var post string
-		if _, err := fmt.Sscanf(line, "%d comment %s", &timestamp, &post); err == nil {
-			unread = append(unread, post)
-		}
-	}
-	if len(unread) > 0 {
-		fmt.Printf("new blog comment(s): %s\n\n", strings.Join(unread, " "))
-	}
+	}()
 
 	// now check emails.
 	fetchRE := regexp.MustCompile(`^\* [0-9]+ FETCH`)
@@ -361,4 +388,8 @@ func main() {
 		}
 	}
 	fmt.Printf("\r\033[K")
+
+	fmt.Printf("checking blog...")
+	blogmsg := <-blogch
+	fmt.Printf("\r\033[K%s", blogmsg)
 }
