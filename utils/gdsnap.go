@@ -444,8 +444,17 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	fi, exist := gs.files[relpath]
 	finfo, err := os.Lstat(abspath)
 	if err != nil && (!exist || fi.Trashed) {
-		if verbose {
-			log.Printf("skipping %s because can't stat it and it's not on gdrive either: %v.", relpath, err)
+		// a path that cannot be statted and is not on gdrive either?
+		// this might be a deleted or moved directory since those are not uploaded.
+		// check any files rooted under this name just in case.
+		// note: this might be slow when deleting many directories.
+		// consider optimizing in that case in some way.
+		// e.g. listfiles could precompute a dir->[file] map.
+		this := relpath + "/"
+		for p := range gs.files {
+			if strings.HasPrefix(p, this) {
+				gs.savepath(path.Join(*dirFlag, p), verbose)
+			}
 		}
 		return
 	}
