@@ -1,4 +1,4 @@
-// see https://notech.ie/enacc.
+// see https://iio.ie/enacc.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <stdbool.h>

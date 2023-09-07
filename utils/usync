@@ -1,6 +1,6 @@
 #!/bin/bash
 # usync - unionfs-fuse sync. syncs a unionfs rw branch to its ro branch. see
-# https://notech.ie/fsbuf.
+# https://iio.ie/fsbuf.
 
 set -e
 shopt -s nullglob
