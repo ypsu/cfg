@@ -378,18 +378,15 @@ func main() {
 			}
 		}()
 	}
-	fmt.Printf("checking email...")
+
+	fmt.Printf("checking blog comments...")
+	blogmsg := <-blogch
+	fmt.Printf("\r\033[K%schecking email...", blogmsg)
 	for _, cfg := range emailcfgs {
 		r := <-cfg.result
 		if len(r) > 0 {
-			fmt.Printf("\r\033[K")
-			fmt.Println(r)
-			fmt.Printf("checking email...")
+			fmt.Printf("\r\033[K%s\nchecking email...", r)
 		}
 	}
 	fmt.Printf("\r\033[K")
-
-	fmt.Printf("checking blog...")
-	blogmsg := <-blogch
-	fmt.Printf("\r\033[K%s", blogmsg)
 }
