@@ -322,12 +322,18 @@ func main() {
 	}
 	emailcfgs := []*emailcfg{}
 	for _, line := range strings.Split(readfile(".config/.myemails"), "\n") {
-		if len(line) == 0 {
+		line := strings.TrimSpace(line)
+		if len(line) == 0 || line[0] == '#' {
 			continue
 		}
-		c := &emailcfg{}
-		if _, err := fmt.Sscan(line, &c.user, &c.pass, &c.inbox); err != nil {
-			log.Fatalf("invalid email config: %v\n", err)
+		fields := strings.Split(line, ",")
+		if len(fields) < 4 {
+			log.Fatalf("invalid email config")
+		}
+		c := &emailcfg{
+			user:  fields[1],
+			pass:  fields[2],
+			inbox: fields[3],
 		}
 		c.result = make(chan string)
 		emailcfgs = append(emailcfgs, c)

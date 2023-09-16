@@ -1,10 +1,6 @@
+set folder = imaps://imap.gmail.com  # this must come before spoolfile.
+`muttcfg`
 set editor = "mailedit"
-set my_name = "Balazs Kezes"
-set from = "Balazs Kezes <rlblaster@gmail.com>"
-set imap_user = rlblaster@gmail.com
-set imap_pass = `awk '/rlblaster/{print $2}' ~/.config/.myemails`
-set folder = imaps://imap.gmail.com
-set spoolfile = =triage
 set header_cache = /tmp/cache/mutt/
 set message_cachedir = /tmp/cache/mutt/
 set tmpdir = /tmp/cache/mutt/
@@ -14,7 +10,9 @@ unset record
 unset imap_passive
 set imap_keepalive = 300
 set mail_check = 120
-set hostname = localhost
+set hostname = mutt
+set reverse_name = yes
+set reverse_realname = yes
 
 set smtp_url = smtps://$imap_user:$imap_pass@smtp.gmail.com
 set ssl_force_tls = yes
