@@ -356,19 +356,24 @@ func main() {
 				c.result <- fmt.Sprintf("failed reading from %s: %v\n", c.user, err)
 				return
 			}
-			var titles []string
+			titles := map[string]bool{}
 			var title string
+			var seen bool
 			for _, line := range strings.Split(string(reply), "\r\n") {
 				if fetchRE.MatchString(line) {
 					if strings.Contains(line, `\Seen`) {
-						title += "    "
-					} else {
-						title += "  u "
+						seen = true
 					}
 				} else if len(line) == 0 {
 					if title != "" {
-						titles = append(titles, title)
-						title = ""
+						title = strings.TrimPrefix(title, "Re: ")
+						v, ok := titles[title]
+						if !ok {
+							titles[title] = seen
+						} else if v && !seen {
+							titles[title] = false
+						}
+						title, seen = "", false
 					}
 				} else if strings.HasPrefix(line, "Subject: ") {
 					title += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
@@ -377,8 +382,19 @@ func main() {
 				}
 			}
 			if len(titles) > 0 {
-				sort.Strings(titles)
-				c.result <- fmt.Sprintf("%s:\n%s\n", c.user, strings.Join(titles, "\n"))
+				sortedTitles := make([]string, 0, len(titles))
+				for t := range titles {
+					sortedTitles = append(sortedTitles, t)
+				}
+				sort.Strings(sortedTitles)
+				for i, t := range sortedTitles {
+					if titles[t] {
+						sortedTitles[i] = "    " + t
+					} else {
+						sortedTitles[i] = "  u " + t
+					}
+				}
+				c.result <- fmt.Sprintf("%s:\n%s\n", c.user, strings.Join(sortedTitles, "\n"))
 			} else {
 				c.result <- ""
 			}
