@@ -39,7 +39,7 @@ func main() {
 			}
 			now := time.Now()
 			sleep = s.ModTime().Add(targetFreshness).Sub(now)
-			if now.Hour() <= 7 || 19 <= now.Hour() {
+			if now.Hour() <= 8 || 1830 <= now.Hour()*100+now.Minute() {
 				sleep = targetFreshness
 			}
 			if sleep < time.Minute {
