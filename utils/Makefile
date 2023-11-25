@@ -43,3 +43,8 @@ $(HOME)/.bin/%: %.go
 $(HOME)/.bin/%: %
 	@echo symlinking $(notdir $@)
 	@ln -s $(PWD)/$< $@
+
+aptinstall:
+	sudo apt install \
+		inotify-tools \
+		libasound-dev \
