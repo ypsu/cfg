@@ -117,7 +117,8 @@ func toHTML(inputbuf []byte, autolinks []byte) []byte {
 		output.WriteByte('\n')
 	}
 	close(output, m)
-	return append(bytes.TrimRight(output.Bytes(), "\n"), []byte("</div>\n")...)
+	html := bytes.ReplaceAll(output.Bytes(), []byte("</pre>\n<pre>"), []byte("\n"))
+	return append(bytes.TrimRight(html, "\n"), []byte("</div>\n")...)
 }
 
 func toMarkdown(inputbuf []byte) []byte {
