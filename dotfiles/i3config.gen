@@ -194,6 +194,7 @@ bindsym $mod+r mode "resize"
 bar {
         position top
         status_command sysstat_tailer
+        bindsym button3 exec --no-startup-id switchtheme
         bindsym button4 exec --no-startup-id volinc
         bindsym button5 exec --no-startup-id voldec
 
