@@ -1,7 +1,9 @@
 #!/bin/bash
 
-if gsettings get org.gnome.desktop.interface color-scheme | grep -q prefer-dark; then
-  gsettings set org.gnome.desktop.interface color-scheme prefer-light
+if test "$(cat /tmp/.curtheme)" = "light"; then
+  echo dark >/tmp/.curtheme
+  timeout 1s xsettingsd -c <(echo 'Net/ThemeName "Adwaita-dark"')
 else
-  gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+  echo light >/tmp/.curtheme
+  timeout 1s xsettingsd -c <(echo 'Net/ThemeName "Adwaita"')
 fi
