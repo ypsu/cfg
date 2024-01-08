@@ -366,7 +366,7 @@ func main() {
 					}
 				} else if len(line) == 0 {
 					if title != "" {
-						title = strings.TrimPrefix(title, "Re: ")
+						title = strings.TrimPrefix(strings.TrimSpace(title), "Re: ")
 						v, ok := titles[title]
 						if !ok {
 							titles[title] = seen
@@ -376,7 +376,7 @@ func main() {
 						title, seen = "", false
 					}
 				} else if strings.HasPrefix(line, "Subject: ") {
-					title += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
+					title = " " + trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
 				} else if title != "" {
 					title += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
 				}
