@@ -48,3 +48,4 @@ aptinstall:
 	sudo apt install \
 		inotify-tools \
 		libasound-dev \
+		libbsd-dev
