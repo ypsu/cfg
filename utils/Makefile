@@ -46,6 +46,18 @@ $(HOME)/.bin/%: %
 
 aptinstall:
 	sudo apt install \
+		alsa-utils \
+		fonts-noto-core \
+		i3 \
 		inotify-tools \
+		golang-golang-x-tools \
 		libasound-dev \
-		libbsd-dev
+		libbsd-dev \
+		libpcap-dev \
+		libreadline-dev \
+		libssl-dev \
+		libx11-dev \
+		libxcursor-dev \
+		libxext-dev \
+		libxss-dev \
+		xfonts-terminus
