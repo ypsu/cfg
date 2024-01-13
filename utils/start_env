@@ -4,16 +4,14 @@ mkdir -p /tmp/a
 if ! ps auxw | grep -v grep | grep -q 'sysstat\>'; then
   delay=5000
   audio=Master
-  network=eth0
+  network=eno1
   if test "$(hostname)" = "eper" || test "$(hostname)" = "ipi"; then
+    network=eth0
     audio=none
     delay=10000
   fi
   if test "$(hostname)" = "ipi"; then
     network=wlan0
-  fi
-  if test "$(hostname)" = "paks"; then
-    network=eno1
   fi
   sysstat -a $audio -d $delay -n $network
 fi
