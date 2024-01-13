@@ -9,5 +9,4 @@ if test "$#" -eq 0; then
   tmux attach
   exit
 fi
-test "$1" = work && export SSH_AUTH_SOCK=/home/$USER/.cache/agent-tty
 ssh -t -X -Y "$1" 'export LANG=en_US.UTF-8; tmux attach || start_env'
