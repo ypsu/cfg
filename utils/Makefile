@@ -60,4 +60,5 @@ aptinstall:
 		libxcursor-dev \
 		libxext-dev \
 		libxss-dev \
-		xfonts-terminus
+		xfonts-terminus \
+		xsettingsd
