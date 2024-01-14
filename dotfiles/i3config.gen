@@ -154,7 +154,7 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 
 # startup stuff
-exec --no-startup-id rx && dterm -e start_env
+exec --no-startup-id rx && disw && dterm -e start_env
 
 # colors
 # class                 border  backgr. text    indicator actualborder
