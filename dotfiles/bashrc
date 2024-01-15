@@ -6,7 +6,8 @@ PS1='\[\e[0m\]$ '
 
 export EDITOR="vim -X -c 'set spell'"
 export LESS="-S -c --mouse --wheel-lines=3"
-export PATH="$HOME/.bin:$HOME/go/bin:/root/.sbin/:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.bin:$HOME/.cache/gopkgs/bin:/root/.sbin/:$HOME/.local/bin:$PATH"
+export GOPATH="$HOME/.cache/gopkgs"
 export LESSCHARSET='utf-8'
 
 alias ls='ls --color=auto'
