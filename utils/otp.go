@@ -19,7 +19,7 @@ func main() {
 	if len(os.Args) >= 2 {
 		fmt.Print(`google authenticator compatible otp generator.
 
-configure by adding the otp urls to the ~/.config/.otp file.
+configure by adding the otp urls to the ~/.config/.otps file.
 parse a qr code by saving the image to disk and then use https://nimiq.github.io/qr-scanner/demo/ on it.
 test otp generation via comparing it to http://blog.tinisles.com/2011/10/google-authenticator-one-time-password-algorithm-in-javascript/.
 example url: otpauth://totp/MYSERVICE:myusername?algorithm=SHA1&issuer=MYSERVICE&secret=JBSWY3DPEHPK3PXP&digits=6&period=30.
@@ -51,7 +51,7 @@ inspired by https://github.com/pcarrier/gauth.
 	ts -= (70*365 + 17) * 86400
 
 	// read the config file.
-	cfgfile, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".config/.otp"))
+	cfgfile, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".config/.otps"))
 	if err != nil {
 		log.Fatal(err)
 	}
