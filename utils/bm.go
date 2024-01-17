@@ -49,21 +49,15 @@ func close(output *bytes.Buffer, m mode) {
 	}
 }
 
-// autolinks is something like "doc|go|groups|oncall|sheets|who".
-// those will be autolinkified if they are followed by a slash.
-// leave it empty if no autolinkification is needed.
-func toHTML(inputbuf []byte, autolinks []byte) []byte {
+func toHTML(inputbuf []byte) []byte {
 	output := &bytes.Buffer{}
 
 	// escape html characters.
 	input := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&#039;").Replace(string(inputbuf))
 
 	// linkify links.
-	if len(autolinks) == 0 {
-		autolinks = []byte("__autolink_placeholder__")
-	}
-	re := regexp.MustCompile(`\b((http(s)?://([-.a-z0-9]+)/?)|(` + string(autolinks) + `)/)(\S*)?\b(/)?`)
-	input = re.ReplaceAllString(input, "<a href='http$3://$4$5/$6$7'>$0</a>")
+	re := regexp.MustCompile(`\bhttp(s)?://([-.a-z0-9]+)(/\S*)?\b(/)?`)
+	input = re.ReplaceAllString(input, "<a href='http$1://$2$3$4'>$0</a>")
 
 	// add a some styling.
 	output.WriteString("<div style=max-width:50em>")
@@ -264,10 +258,6 @@ func main() {
 		*fFlag = os.Getenv("HOME") + "/todo"
 	}
 
-	// read autolinks if available.
-	autolinks, _ := ioutil.ReadFile(os.Getenv("HOME") + "/.autolinks")
-	autolinks = bytes.TrimSpace(autolinks)
-
 	if len(*fFlag) == 0 {
 		// read input buffers.
 		inputbuf, err := ioutil.ReadAll(os.Stdin)
@@ -287,7 +277,7 @@ func main() {
 		if *rFlag && isHTML {
 			outbuf = toMarkdown(inputbuf)
 		} else if !*rFlag && !isHTML {
-			outbuf = toHTML(inputbuf, autolinks)
+			outbuf = toHTML(inputbuf)
 		}
 		ioutil.WriteFile("/dev/stdout", outbuf, 0)
 		return
@@ -327,7 +317,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			content = toHTML(content, autolinks)
+			content = toHTML(content)
 			for _, r := range waitingRequests {
 				fmt.Fprintf(r.w, "%d\n", lastMod.UnixNano())
 				r.w.Write(content)
