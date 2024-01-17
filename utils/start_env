@@ -11,7 +11,7 @@ if ! ps auxw | grep -v grep | grep -q 'sysstat\>'; then
     delay=10000
   fi
   if test "$(hostname)" = "ipi"; then
-    network=wlan0
+    network=end0
   fi
   sysstat -a $audio -d $delay -n $network
 fi
