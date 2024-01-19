@@ -85,22 +85,22 @@ lterm*color13: #ff00ff
 lterm*color14: #00c0c0
 lterm*color15: #ffffff
 
-! black and white xterm.
-bwterm*foreground: #000000
-bwterm*background: #ffffff
-bwterm*color0: #000000
-bwterm*color1: #000000
-bwterm*color2: #000000
-bwterm*color3: #000000
-bwterm*color4: #000000
-bwterm*color5: #000000
-bwterm*color6: #000000
-bwterm*color7: #e0e0e0
-bwterm*color8: #000000
-bwterm*color9: #000000
-bwterm*color10: #000000
-bwterm*color11: #000000
-bwterm*color12: #000000
-bwterm*color13: #000000
-bwterm*color14: #000000
-bwterm*color15: #ffffff
+! monochrome (black and white) xterm.
+mterm*foreground: #000000
+mterm*background: #ffffff
+mterm*color0: #000000
+mterm*color1: #000000
+mterm*color2: #000000
+mterm*color3: #000000
+mterm*color4: #000000
+mterm*color5: #000000
+mterm*color6: #000000
+mterm*color7: #e0e0e0
+mterm*color8: #000000
+mterm*color9: #000000
+mterm*color10: #000000
+mterm*color11: #000000
+mterm*color12: #000000
+mterm*color13: #000000
+mterm*color14: #000000
+mterm*color15: #ffffff
