@@ -434,14 +434,19 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 		log.Printf("skipping %s because it's not under %s.", abspath, *dirFlag)
 		return
 	}
-	relpath := abspath[len(*dirFlag):]
+	relpath, ignore := abspath[len(*dirFlag):], false
 	for _, ign := range gs.ignore {
 		if matchglob(ign, relpath) {
-			return
+			ignore = true
+			break
 		}
 	}
 
 	fi, exist := gs.files[relpath]
+	if ignore && (!exist || fi.Trashed) {
+		return
+	}
+
 	finfo, err := os.Lstat(abspath)
 	if err != nil && (!exist || fi.Trashed) {
 		// a path that cannot be statted and is not on gdrive either?
@@ -463,7 +468,7 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	var needTrashing bool
 	var modtime string
 	newfi := fi
-	if err != nil {
+	if err != nil || ignore {
 		needTrashing = true
 		newfi.Trashed = true
 		newfi.MimeType = "gdsnap/deleted"
