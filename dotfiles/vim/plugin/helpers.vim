@@ -209,6 +209,8 @@ function! Format()
     let filter = 'goimports'
   elseif &filetype == 'javascript' || &filetype == 'typescript'
     let filter = 'js-beautify --indent-size=2 --end-with-newline'
+  elseif &filetype == 'rust'
+    let filter = 'rustfmt'
   else
     echo "no formatter for " . &filetype
     return
