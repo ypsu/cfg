@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# copy mobi and pdf files to my old kindle.
+
+scp *.{mobi,pdf} kindle:/mnt/us/documents/
+ssh kindle dbus-send --system /default com.lab126.powerd.resuming int32:1
