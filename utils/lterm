@@ -1,2 +1,2 @@
 #!/bin/bash
-xterm -class lterm
+xterm -class lterm "$@"
