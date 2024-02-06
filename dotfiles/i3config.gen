@@ -32,8 +32,8 @@ floating_modifier $mod
 # start a terminal
 bindsym $mod+Return exec --no-startup-id dterm
 bindsym $mod+Escape exec --no-startup-id dterm
-bindsym $mod+Shift+Return exec --no-startup-id dterm -name XM-floating
-bindsym $mod+Shift+Escape exec --no-startup-id dterm -name XM-floating
+bindsym $mod+Shift+Return exec --no-startup-id dterm -title floating-xterm
+bindsym $mod+Shift+Escape exec --no-startup-id dterm -title floating-xterm
 
 # other hotkeys
 bindsym $mod+t exec --no-startup-id links -g
@@ -41,7 +41,6 @@ bindsym $mod+Mod1+l exec --no-startup-id x11lock activate
 bindsym $mod+Scroll_Lock exec --no-startup-id x11lock activate
 bindsym $mod+Mod1+p exec --no-startup-id srec -k && sleep 1s && systemctl suspend && x11lock activate
 bindsym $mod+Pause exec --no-startup-id srec -k && sleep 1s && systemctl suspend && x11lock activate
-for_window [title="Latex to Unicode converter"] floating enable
 for_window [window_role="pop-up"] floating enable
 
 bindsym $mod+F11 exec --no-startup-id voldec
@@ -145,8 +144,8 @@ bindsym $mod+a move workspace to output right
 # toggle i3 bar's visibility
 bindsym $mod+x bar mode toggle
 
-for_window [title="XM-floating"] floating enable
-for_window [title="XM-floating"] move position center
+for_window [title="floating-xterm"] floating enable
+for_window [title="floating-xterm"] move position center
 
 # reload the configuration file
 bindsym $mod+Shift+c reload
