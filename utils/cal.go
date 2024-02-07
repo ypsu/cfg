@@ -43,8 +43,19 @@ func fmtmonth(year, month int) monthstanza {
 
 func run() error {
 	flag.Parse()
+	if flag.NArg() >= 2 {
+		return fmt.Errorf("got %d args, want at most 1", flag.NArg())
+	}
+	var y int
+	fmt.Sscan(flag.Arg(0), &y)
+	if y != 0 {
+		today = time.Date(y, 1, 1, 0, 0, 0, 0, time.Local)
+	}
 	startyear, startq := today.Year(), int(today.Month()-1)/3
 	endq := startq + 2
+	if y != 0 {
+		startq, endq = 0, 4
+	}
 	if *flagExtended {
 		startyear, startq, endq = startyear-1, 0, 12
 	}
