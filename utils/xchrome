@@ -10,8 +10,7 @@ fi
 
 # start chrome with no autocompletion in its omnibox.
 google-chrome \
-  --enable-features="OmniboxUIExperimentMaxAutocompleteMatches<Trial" \
-  --force-fieldtrials="Trial/Group" \
-  --force-fieldtrial-params="Trial.Group:UIMaxAutocompleteMatches/1/UIMaxAutocompleteMatchesByProvider/*%3A0" \
+  --enable-features="OmniboxUIExperimentMaxAutocompleteMatches:UIMaxAutocompleteMatches/1/UIMaxAutocompleteMatchesByProvider/*%3A0" \
+  --disable-features="UrlScoringModel" \
   --force-prefers-reduced-motion \
   "$@"
