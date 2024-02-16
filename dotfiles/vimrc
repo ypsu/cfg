@@ -24,7 +24,6 @@ set showcmd             " display incomplete commands
 set tabpagemax=64
 set secure
 set mouse=a
-set ttymouse=xterm2
 set notimeout
 set ttimeout
 set ttimeoutlen=1
