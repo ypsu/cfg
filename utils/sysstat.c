@@ -313,12 +313,16 @@ int main(int argc, char **argv) {
     }
 
     // Read the battery data.
-    char bat[16] = {};
+    char bat[32] = {};
     if (config.bat_now != -1 && config.bat_full != -1) {
       int64_t full = extract_number(config.bat_full);
       int64_t now = extract_number(config.bat_now);
       ns.battery = now * 100 / full;
-      snprintf(bat, 16, "%3d%% bat ", ns.battery);
+      const char *battery_warning = "";
+      // warn if i missed limiting the battery. ref:
+      // https://askubuntu.com/questions/34452/how-can-i-limit-battery-charging-to-80-capacity
+      if (ns.battery >= 90) battery_warning = " [toomuch]";
+      snprintf(bat, 32, "%3d%%%s bat ", ns.battery, battery_warning);
     }
 
     // Format the volume level.
