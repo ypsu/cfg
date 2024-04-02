@@ -94,7 +94,7 @@ set wildignore=*.dll,*.o,*.out,*.pyc,*.bak,*.exe,*.jpg,*.jpeg,*.png,*.gif,*.clas
 " Some C/C++ specific autoindenting options
 let &cinoptions = 'g1,t0,(0'
 " Display tabs to annoy myself
-let &lcs = "trail:.,tab:> "
+let &lcs = "trail:·,tab:> "
 set list
 
 " Disable autowrapping and automatic comment beginnings.
