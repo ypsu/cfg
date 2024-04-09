@@ -1,3 +1,5 @@
 #!/bin/bash
+PATH=/home/tvuser/.bin:$PATH
 rx
+start_env
 exec i3
