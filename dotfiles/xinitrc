@@ -1,5 +1,5 @@
 #!/bin/bash
-PATH=/home/tvuser/.bin:$PATH
+PATH=/home/$USER/.bin:$PATH
 rx
 start_env
 exec i3
