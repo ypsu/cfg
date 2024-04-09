@@ -1,5 +1,3 @@
 #!/bin/bash
-PATH=/home/$USER/.bin:$PATH
 rx
-start_env
 exec i3
