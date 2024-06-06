@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -62,6 +63,9 @@ func run() error {
 		displays[lastActive].intent, displays[(lastActive+1)%len(displays)].intent = false, true
 	}
 
+	debug := bytes.NewBuffer(make([]byte, 0, 4096))
+	fmt.Fprintf(debug, "%s\n", output)
+
 	var args []string
 	for _, d := range displays {
 		if !d.intent {
@@ -69,8 +73,16 @@ func run() error {
 		} else {
 			args = append(args, "--output", d.name, "--mode", d.mode)
 		}
+		fmt.Fprintf(debug, "%+v\n", d)
 	}
-	fmt.Printf("xrandr %s\n", strings.Join(args, " "))
+	fmt.Printf("xrandr %s\ndebug data at /tmp/disw.debug\n", strings.Join(args, " "))
+
+	fmt.Fprintf(debug, "\nxrandr %s\n", strings.Join(args, " "))
+	err = os.WriteFile("/tmp/disw.debug", debug.Bytes(), 0o644)
+	if err != nil {
+		return fmt.Errorf("debug data write: %v", err)
+	}
+
 	if *flagDryrun {
 		return nil
 	}
