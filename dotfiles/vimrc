@@ -267,19 +267,19 @@ function SetCPPCommands()
 endfunction
 
 " Keys for standalone Go programs.
-" F5 - build and run
-" F6 - build
+" F5 - run
+" F6 - check syntax
 " F7 - build, set a permanent breakpoint and run in the debugger
-" \1, \2, \3 - build, run, debug
+" \1, \2, \3 - compile-check, run, debug
 " :LT - load my Go template
 function SetGoCommands()
-	map <F5> :!'%:p:r' <CR>
-	map <F6> :!go build '%:p' <CR>
+	map <F5> :!go run '%:p:r' <CR>
+	map <F6> :!go build -o /dev/null '%:p' <CR>
 	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
 
 	com! LT 1,$d | r ~/.template.go | 1d | 12
-	map <Leader>1 :!go build '%:p' <CR>
-	map <Leader>2 :!'%:p:r' <CR>
+	map <Leader>1 :!go build -o /dev/null '%:p' <CR>
+	map <Leader>2 :!go run '%:p' <CR>
 	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
 endfunction
 
