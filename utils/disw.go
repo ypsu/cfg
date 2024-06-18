@@ -5,11 +5,11 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 )
 
@@ -21,16 +21,9 @@ type display struct {
 	intent     bool
 }
 
-func run() error {
-	flag.Parse()
-
-	output, err := exec.Command("xrandr").Output()
-	if err != nil {
-		return err
-	}
-
+func next(xrandr string) ([]string, error) {
 	var displays []display
-	lines := strings.Split(string(output), "\n")
+	lines := strings.Split(xrandr, "\n")
 	for i := 0; i < len(lines)-1; i++ {
 		var name, state, mode string
 		fmt.Sscan(lines[i], &name, &state)
@@ -49,22 +42,27 @@ func run() error {
 			intent: strings.Contains(lines[i+1], "*"),
 		})
 	}
+	if len(displays) == 0 {
+		return nil, fmt.Errorf("no displays found")
+	}
 
-	activeCount, lastActive := 0, 0
+	activeCount, lastActive, primaryScreen := 0, 0, 0
 	for i, d := range displays {
 		if d.active {
 			lastActive, activeCount = i, activeCount+1
+		}
+		if d.name == "eDP-1" {
+			primaryScreen = i
 		}
 	}
 
 	if activeCount >= 2 {
 		displays[lastActive].intent = false
+	} else if activeCount == 0 {
+		displays[primaryScreen].intent = true
 	} else {
 		displays[lastActive].intent, displays[(lastActive+1)%len(displays)].intent = false, true
 	}
-
-	debug := bytes.NewBuffer(make([]byte, 0, 4096))
-	fmt.Fprintf(debug, "%s\n", output)
 
 	var args []string
 	for _, d := range displays {
@@ -73,17 +71,28 @@ func run() error {
 		} else {
 			args = append(args, "--output", d.name, "--mode", d.mode)
 		}
-		fmt.Fprintf(debug, "%+v\n", d)
 	}
-	fmt.Printf("xrandr %s\ndebug data at /tmp/disw.debug\n", strings.Join(args, " "))
+	if slices.Contains(args, "1920x1080") {
+		return args, fmt.Errorf("found resolution 1920x1080, seems wrong, not doing anything")
+	}
+	return args, nil
+}
 
-	fmt.Fprintf(debug, "\nxrandr %s\n", strings.Join(args, " "))
-	err = os.WriteFile("/tmp/disw.debug", debug.Bytes(), 0o644)
+func run() error {
+	flag.Parse()
+
+	output, err := exec.Command("xrandr").Output()
 	if err != nil {
-		return fmt.Errorf("debug data write: %v", err)
+		return err
 	}
 
+	args, err := next(string(output))
+	fmt.Printf("command: xrandr %s\n", strings.Join(args, " "))
+	if err != nil {
+		return err
+	}
 	if *flagDryrun {
+		fmt.Println("skipping because in dry run mode.")
 		return nil
 	}
 
@@ -94,7 +103,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "error: %v.\n", err)
 		os.Exit(1)
 	}
 }
