@@ -9,7 +9,7 @@ BUILD := opt
 $(shell mkdir -p $(HOME)/.bin)
 scripts_src := $(filter-out Makefile,$(filter-out %.c %.go,$(sort $(wildcard *))))
 scripts_dst := $(patsubst %,$(HOME)/.bin/%,$(scripts_src))
-sources := $(sort $(wildcard *.c *.go))
+sources := $(filter-out %_test.go, $(sort $(wildcard *.c *.go)))
 binaries := $(patsubst %.go,$(HOME)/.bin/%,$(patsubst %.c,$(HOME)/.bin/%,$(sources)))
 libs := \
 	-lasound \
