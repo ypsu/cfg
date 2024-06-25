@@ -106,4 +106,27 @@ DP-4 disconnected (normal left inverted right x axis y axis)
 {name:DP-3 mode:1920x1080 active:false intent:true}
 ===
 [--output DP-3 --off --output eDP-1 --mode 1920x1200] <nil>
+===
+
+test input 5:
+Screen 0: minimum 320 x 200, current 1920 x 1200, maximum 16384 x 16384
+eDP-1 connected primary 1920x1200+0+0 (normal left inverted right x axis y axis) 302mm x 189mm
+   3840x2400     60.00 +
+   3840x2160     59.97
+   2048x1152     59.99    59.98    59.90    59.91
+   1920x1200     59.88*   59.95
+   1920x1080     60.01    59.97    59.96    59.93
+   1600x1200     60.00
+HDMI-1 disconnected (normal left inverted right x axis y axis)
+DP-1 disconnected (normal left inverted right x axis y axis)
+HDMI-2 disconnected (normal left inverted right x axis y axis)
+DP-2 disconnected (normal left inverted right x axis y axis)
+HDMI-3 disconnected (normal left inverted right x axis y axis)
+DP-3 connected (normal left inverted right x axis y axis)
+   2560x1440     75.00 +  59.95
+   1920x1080     60.00    50.00    59.94
+   1680x1050     59.95
+DP-4 disconnected (normal left inverted right x axis y axis)
+===
+[--output eDP-1 --off --output DP-3 --mode 2560x1440] <nil>
 `

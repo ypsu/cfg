@@ -25,6 +25,10 @@ func next(xrandr string) ([]string, error) {
 	var displays []display
 	lines := strings.Split(xrandr, "\n")
 	for i := 0; i < len(lines)-1; i++ {
+		if strings.Contains(lines[i], "*") {
+			d := &displays[len(displays)-1]
+			d.active, d.intent = true, true
+		}
 		var name, state, mode string
 		fmt.Sscan(lines[i], &name, &state)
 		if state != "connected" {
