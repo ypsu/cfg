@@ -102,6 +102,7 @@ func run() error {
 
 	output, err = exec.Command("xrandr", args...).Output()
 	fmt.Printf("%s", output)
+	exec.Command("rx").Run()
 	return err
 }
 
