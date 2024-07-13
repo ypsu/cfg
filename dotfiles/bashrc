@@ -4,7 +4,7 @@ shopt -s histappend
 HISTCONTROL=erasedups
 PS1='\[\e[0m\]$ '
 
-export EDITOR="vim -X -c 'set spell'"
+export EDITOR=vim
 export LESS="-S -c --mouse --wheel-lines=3"
 export PATH="$HOME/.bin:$HOME/.cache/gopkgs/bin:/root/.sbin/:$HOME/.local/bin:$PATH"
 export GOPATH="$HOME/.cache/gopkgs"
