@@ -56,7 +56,7 @@ func toHTML(inputbuf []byte) []byte {
 	input := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", "\"", "&quot;", "'", "&#039;").Replace(string(inputbuf))
 
 	// linkify links.
-	re := regexp.MustCompile(`\bhttp(s)?://([-.a-z0-9]+)(/\S*)?\b(/)?`)
+	re := regexp.MustCompile(`\bhttp(s)?://([-.a-zßáéíóöőúüű0-9]+)(/\S*)?\b(/)?`)
 	input = re.ReplaceAllString(input, "<a href='http$1://$2$3$4'>$0</a>")
 
 	// add a some styling.
