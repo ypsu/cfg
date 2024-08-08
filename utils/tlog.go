@@ -91,5 +91,5 @@ func main() {
 	}
 
 	// clear the bell.
-	exec.Command("tmux", "select-window", "-t", "4", ";", "select-window", "-l").Run()
+	exec.Command("tmux", "select-window", "-t", "5", ";", "select-window", "-l").Run()
 }

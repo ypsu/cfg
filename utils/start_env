@@ -30,7 +30,7 @@ fi
 tmux new-session -d
 tmux rename-window "____"
 settitle xterm
-for i in {2..5}; do
+for i in {2..6}; do
   tmux new-window -n ____
 done
 tmux select-window -t 1
