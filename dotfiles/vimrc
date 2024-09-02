@@ -190,6 +190,8 @@ map <Leader>P :let @" = system('x2t; tmux save-buffer -')<CR>P
 " Yank to tmux buffer/X11 clipboard.
 map <Leader>y y:call system('cat \| tmux load-buffer -; t2x', @")<CR>
 map <Leader>Y yy:call system('cat \| tmux load-buffer -; t2x', @")<CR>
+" Copy current filename to clipboard.
+map <Leader><C-g> :call system('echo ' . expand('%') . ' \| tmux load-buffer -; t2x')<CR><C-g>
 
 " Toggle syntax highlight
 map <F12> :call ToggleSyntaxHighlight()<CR>
