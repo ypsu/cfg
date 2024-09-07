@@ -630,10 +630,13 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	w.Close()
 
 	var createReq *http.Request
+	var kind string
 	if exist {
 		createReq, err = http.NewRequest("PATCH", "https://www.googleapis.com/upload/drive/v3/files/"+fi.ID+"?uploadType=multipart", bytes.NewReader(reqBuf.Bytes()))
+		kind = "existing"
 	} else {
 		createReq, err = http.NewRequest("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", bytes.NewReader(reqBuf.Bytes()))
+		kind = "pre-existing"
 	}
 	if err != nil {
 		log.Fatalf("couldn't create upload/create request for %s: %v", relpath, err)
@@ -643,14 +646,14 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	createReq.Header.Set("Content-Type", "multipart/related; boundary="+w.Boundary())
 	createResp, err := http.DefaultClient.Do(createReq)
 	if err != nil {
-		log.Fatalf("creation of %s failed: %v.", relpath, err)
+		log.Fatalf("upload of %s failed: %v.", relpath, err)
 	}
 	createBody, err := io.ReadAll(createResp.Body)
 	if err != nil {
 		log.Fatalf("couldn't read create response for %s: %v", relpath, err)
 	}
 	if createResp.StatusCode != 200 {
-		log.Fatalf("creation of %s failed with %q:\n%s", relpath, createResp.Status, createBody)
+		log.Fatalf("upload of %s %s failed with %q:\n%s", kind, relpath, createResp.Status, createBody)
 	}
 	gs.files[relpath] = newfi
 	log.Printf("%s updated.", relpath)
