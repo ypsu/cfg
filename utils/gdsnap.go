@@ -636,7 +636,7 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 		kind = "existing"
 	} else {
 		createReq, err = http.NewRequest("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", bytes.NewReader(reqBuf.Bytes()))
-		kind = "pre-existing"
+		kind = "new"
 	}
 	if err != nil {
 		log.Fatalf("couldn't create upload/create request for %s: %v", relpath, err)
@@ -656,7 +656,11 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 		log.Fatalf("upload of %s %s failed with %q:\n%s", kind, relpath, createResp.Status, createBody)
 	}
 	gs.files[relpath] = newfi
-	log.Printf("%s updated.", relpath)
+	if exist {
+		log.Printf("%s updated.", relpath)
+	} else {
+		log.Printf("%s created.", relpath)
+	}
 }
 
 func (gs *gdsnap) subcommandWatch(args []string) {
