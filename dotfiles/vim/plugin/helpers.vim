@@ -208,7 +208,7 @@ function! Format()
   elseif &filetype == 'go'
     let filter = 'goimports'
   elseif &filetype == 'javascript' || &filetype == 'typescript'
-    let filter = 'js-beautify --indent-size=2 --end-with-newline'
+    let filter = 'prettier --print-width=160 --no-semi --stdin-filepath=' . expand("%:t")
   elseif &filetype == 'rust'
     let filter = 'rustfmt'
   else
