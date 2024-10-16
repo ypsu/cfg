@@ -378,7 +378,7 @@ func main() {
 				} else if strings.HasPrefix(line, "Subject: ") {
 					title = " " + trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
 				} else if title != "" {
-					title += trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
+					title += " " + trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
 				}
 			}
 			if len(titles) > 0 {
