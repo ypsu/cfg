@@ -207,7 +207,7 @@ function! Format()
     let filter = 'clang-format --assume-filename=' . expand("%:t")
   elseif &filetype == 'go'
     let filter = 'goimports'
-  elseif &filetype == 'javascript' || &filetype == 'typescript'
+  elseif &filetype == 'javascript' || &filetype == 'typescript' || &filetype == 'json' || &filetype == 'yaml' || &filetype == 'css'
     let filter = 'prettier --print-width=160 --no-semi --stdin-filepath=' . expand("%:t")
   elseif &filetype == 'rust'
     let filter = 'rustfmt'
