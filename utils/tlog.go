@@ -75,6 +75,7 @@ func main() {
 			log.Fatal("notefile empty.")
 		}
 		note = string(buf)
+		fmt.Print(note)
 	} else {
 		note = strings.Join(os.Args[1:], " ")
 	}
