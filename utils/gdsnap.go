@@ -653,7 +653,8 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 		log.Fatalf("couldn't read create response for %s: %v", relpath, err)
 	}
 	if createResp.StatusCode != 200 {
-		log.Fatalf("upload of %s %s failed with %q:\n%s", kind, relpath, createResp.Status, createBody)
+		// TODO: remove fi.ID once found the 404 bug.
+		log.Fatalf("upload of %s %s failed with %q (fi.ID=%s):\n%s", kind, relpath, createResp.Status, fi.ID, createBody)
 	}
 	gs.files[relpath] = newfi
 	if exist {
