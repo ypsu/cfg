@@ -447,6 +447,17 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 		return
 	}
 
+	if exist && fi.ID == "" {
+		// This can happen only in a rare race condition.
+		// The ID field is only filled in the main loop's gs.listfiles() function.
+		// If empty then this file was created in this cycle and then visited again through a recursive call.
+		// Most of the time nothing needs to be done because the file is already uploaded.
+		// In rare cases the file's content might have changed between now and its creation in the current cycle.
+		// No need to do anything in that case either because the next main cycle will deal with that change.
+		// In my next life I should avoid inotify and these ugly recursions and just do a full cycle each iteration.
+		return
+	}
+
 	finfo, err := os.Lstat(abspath)
 	if err != nil && (!exist || fi.Trashed) {
 		// a path that cannot be statted and is not on gdrive either?
@@ -653,8 +664,7 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 		log.Fatalf("couldn't read create response for %s: %v", relpath, err)
 	}
 	if createResp.StatusCode != 200 {
-		// TODO: remove fi.ID once found the 404 bug.
-		log.Fatalf("upload of %s %s failed with %q (fi.ID=%s):\n%s", kind, relpath, createResp.Status, fi.ID, createBody)
+		log.Fatalf("upload of %s %s failed with %q:\n%s", kind, relpath, createResp.Status, createBody)
 	}
 	gs.files[relpath] = newfi
 	if exist {
