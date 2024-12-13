@@ -1,3 +1,0 @@
-* dir "/home/rlblaster/"
-* warncmd "alert gdsnapalert"
-* ignore ".cache/**,.config/.myemails,.mozilla/**,.ssh/**,.sshd/**"
