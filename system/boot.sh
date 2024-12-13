@@ -88,7 +88,7 @@ echo Setting tty keymap
 loadkeys -d
 loadkeys /home/rlblaster/.d/cfg/misc/loadkeys.cfg
 kbdrate -d 300 -r 40
-ipi mkdir -p /tmp/cache/{go-build,gopkgs,mutt}
+ipi mkdir -p /tmp/cache/{go-build,gopkgs,mutt,tinygo}
 ipi chown -R rlblaster:users /tmp/cache
 
 echo Setting kernel variables
