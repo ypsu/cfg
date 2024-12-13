@@ -1227,6 +1227,8 @@ func main() {
 		os.Exit(1)
 	}()
 
+	log.SetFlags(log.Flags() | log.Lshortfile)
+
 	flag.Usage = usage
 	flag.Parse()
 	readconfig()
