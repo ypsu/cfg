@@ -54,23 +54,45 @@ func writefile(name, content string) {
 	}
 }
 
+func splitSubject(subject string) []string {
+	r := make([]string, 0, 2)
+	for subject != "" {
+		start := strings.Index(subject, "=?")
+		if start == -1 {
+			return append(r, subject)
+		}
+		if start != 0 {
+			r, subject = append(r, subject[:start]), subject[start:]
+		}
+		end := strings.Index(subject, "?=")
+		if end == -1 {
+			return append(r, subject)
+		}
+		r, subject = append(r, subject[:end+2]), subject[end+2:]
+	}
+	return r
+}
+
 // example:
-// input: =?utf-8?B?c3rFkWzFkSwgYmFuw6FuIGFs?= =?utf-8?Q?ma_di=C3=B3?= narancs
-// result: szőlő banán alma dió narancs
+// input: =?utf-8?B?c3rFkWzFkSwgYmFuw6FuIGFs?= =?utf-8?Q?ma_di=C3=B3?= = =?utf-8?Q?al ma?= narancs
+// result: szőlő banán alma dió sep al ma narancs
 func decodeRFC2047(s string) string {
 	r := strings.Builder{}
 	wasQuoted := false
-	for _, ss := range strings.Split(s, " ") {
+	for _, ss := range splitSubject(s) {
+		ss = strings.TrimSpace(ss)
 		space := ""
 		if r.Len() > 0 {
 			space = " "
 		}
 		if len(s) < 6 || !strings.HasPrefix(ss, "=?") || !strings.HasSuffix(ss, "?=") {
+			wasQuoted = false
 			r.WriteString(space + ss)
 			continue
 		}
 		f := strings.Split(ss, "?")
 		if len(f) != 5 {
+			wasQuoted = false
 			r.WriteString(space + ss)
 			continue
 		}
@@ -85,6 +107,7 @@ func decodeRFC2047(s string) string {
 			err = errors.New("invalid encoding")
 		}
 		if err != nil {
+			wasQuoted = false
 			r.WriteString(space + ss)
 		} else {
 			if wasQuoted {
@@ -376,9 +399,9 @@ func main() {
 						title, seen = "", false
 					}
 				} else if strings.HasPrefix(line, "Subject: ") {
-					title = " " + trimquotes(fmt.Sprintf("%q", decodeRFC2047(line[9:])))
+					title = " " + strings.TrimSpace(trimquotes(fmt.Sprintf("%q", line[9:])))
 				} else if title != "" {
-					title += " " + trimquotes(fmt.Sprintf("%q", decodeRFC2047(line)))
+					title += " " + strings.TrimSpace(trimquotes(fmt.Sprintf("%q", line)))
 				}
 			}
 			if len(titles) > 0 {
@@ -389,9 +412,9 @@ func main() {
 				sort.Strings(sortedTitles)
 				for i, t := range sortedTitles {
 					if titles[t] {
-						sortedTitles[i] = "    " + t
+						sortedTitles[i] = "    " + decodeRFC2047(t)
 					} else {
-						sortedTitles[i] = "  u " + t
+						sortedTitles[i] = "  u " + decodeRFC2047(t)
 					}
 				}
 				c.result <- fmt.Sprintf("%s:\n%s\n", c.user, strings.Join(sortedTitles, "\n"))
