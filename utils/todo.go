@@ -56,26 +56,27 @@ func writefile(name, content string) {
 
 func splitSubject(subject string) []string {
 	r := make([]string, 0, 2)
-	for subject != "" {
-		start := strings.Index(subject, "=?")
-		if start == -1 {
-			return append(r, subject)
+	for {
+		pf, sf, ok := strings.Cut(subject, "=?")
+		if strings.TrimSpace(pf) != "" {
+			r = append(r, pf)
 		}
-		if start != 0 {
-			r, subject = append(r, subject[:start]), subject[start:]
+		if !ok {
+			return r
 		}
-		end := strings.Index(subject, "?=")
-		if end == -1 {
-			return append(r, subject)
+		fs := strings.SplitN(sf, "?", 4)
+		if len(fs) < 4 || !strings.HasPrefix(fs[3], "=") {
+			return append(r, sf)
 		}
-		r, subject = append(r, subject[:end+2]), subject[end+2:]
+		r, subject = append(r, "=?"+strings.ReplaceAll(strings.Join(fs[:3], "?"), " ", "")+"?="), fs[3][1:]
 	}
-	return r
 }
 
 // example:
 // input: =?utf-8?B?c3rFkWzFkSwgYmFuw6FuIGFs?= =?utf-8?Q?ma_di=C3=B3?= = =?utf-8?Q?al ma?= narancs
-// result: szőlő banán alma dió sep al ma narancs
+// result: szőlő banán alma dió = al ma narancs
+// input: =?UTF-8?Q?= F0=9F=93=86_Beginnen_Sie_das_Jahr_2025_mit_einem_strahlenden_L?= =?UTF-8?Q?= C3=A4cheln_=E2=80=93_und_mit_einer_einfachen_Terminbuchung!?=
+// result: 📆 Beginnen Sie das Jahr 2025 mit einem strahlenden Lächeln – und mit einer einfachen Terminbuchung!
 func decodeRFC2047(s string) string {
 	r := strings.Builder{}
 	wasQuoted := false
