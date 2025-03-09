@@ -68,15 +68,17 @@ func splitSubject(subject string) []string {
 		if len(fs) < 4 || !strings.HasPrefix(fs[3], "=") {
 			return append(r, sf)
 		}
-		r, subject = append(r, "=?"+strings.ReplaceAll(strings.Join(fs[:3], "?"), " ", "")+"?="), fs[3][1:]
+		r, subject = append(r, "=?"+strings.Join(fs[:3], "?")+"?="), fs[3][1:]
 	}
 }
 
 // example:
 // input: =?utf-8?B?c3rFkWzFkSwgYmFuw6FuIGFs?= =?utf-8?Q?ma_di=C3=B3?= = =?utf-8?Q?al ma?= narancs
 // result: szőlő banán alma dió = al ma narancs
-// input: =?UTF-8?Q?= F0=9F=93=86_Beginnen_Sie_das_Jahr_2025_mit_einem_strahlenden_L?= =?UTF-8?Q?= C3=A4cheln_=E2=80=93_und_mit_einer_einfachen_Terminbuchung!?=
+// input: =?UTF-8?Q?=F0=9F=93=86_Beginnen_Sie_das_Jahr_2025_mit_einem_strahlenden_L?= =?UTF-8?Q?=C3=A4cheln_=E2=80=93_und_mit_einer_einfachen_Terminbuchung!?=
 // result: 📆 Beginnen Sie das Jahr 2025 mit einem strahlenden Lächeln – und mit einer einfachen Terminbuchung!
+// input: =?utf-8?Q?V=C3=A1ltson Digit=C3=A1lis =C3=81llampolg=C3=A1r alkalmaz=C3=A1sra vagy =C3=9Cgyf=C3=A9lkapu+-ra, hogy elektronikusan int=C3=A9zhesse az =C3=BCgyeit!?=
+// result: Váltson Digitális Állampolgár alkalmazásra vagy Ügyfélkapu+-ra, hogy elektronikusan intézhesse az ügyeit!
 func decodeRFC2047(s string) string {
 	r := strings.Builder{}
 	wasQuoted := false
