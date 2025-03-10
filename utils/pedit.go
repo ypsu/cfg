@@ -43,7 +43,7 @@ func main() {
 	flag.Parse()
 
 	// read data.
-	filename := path.Join(os.Getenv("HOME"), "d/cfg/.contacts")
+	filename := path.Join(os.Getenv("HOME"), ".contacts")
 	ciphertext, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatalf("couldn't load datafile: %v", err)
