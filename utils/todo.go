@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"errors"
@@ -13,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -340,6 +343,48 @@ func main() {
 		}
 	}()
 
+	// Check for alerts on my blog.
+	msgzch := make(chan string, 1)
+	go func() {
+		err := func() error {
+			cookie, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".cache/iio"))
+			if err != nil {
+				return fmt.Errorf("todo.ReadCookieFile: %v", err)
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			request, err := http.NewRequestWithContext(ctx, "GET", "https://iio.ie/msgz", nil)
+			if err != nil {
+				return fmt.Errorf("todo.NewMsgzRequest: %v", err)
+			}
+			request.AddCookie(&http.Cookie{Name: "session", Value: strings.TrimSpace(string(cookie))})
+			response, err := http.DefaultClient.Do(request)
+			if err != nil {
+				return fmt.Errorf("todo.DoMsgzRequest: %v", err)
+			}
+			body, err := io.ReadAll(response.Body)
+			if err := response.Body.Close(); err != nil {
+				return fmt.Errorf("todo.CloseMsgzBody: %v", err)
+			}
+			if err != nil {
+				return fmt.Errorf("todo.ReadMsgzBody: %v", err)
+			}
+			if response.StatusCode != http.StatusOK {
+				return fmt.Errorf("todo.CheckMsgzStatus status=%q: %s", response.Status, bytes.TrimSpace(body))
+			}
+			lines := strings.Split(string(bytes.TrimSpace(body)), "\n")
+			if len(lines) == 2 {
+				msgzch <- ""
+				return nil
+			}
+			msgzch <- fmt.Sprintf("blog.Msgz:\n  %s\n", strings.Join(lines[1:len(lines)-1], "\n  "))
+			return nil
+		}()
+		if err != nil {
+			msgzch <- fmt.Sprintf("todo.MsgzCheckFailed: %v\n", err)
+		}
+	}()
+
 	// now check emails.
 	fetchRE := regexp.MustCompile(`^\* [0-9]+ FETCH`)
 	type emailcfg struct {
@@ -429,7 +474,9 @@ func main() {
 
 	fmt.Printf("checking blog comments...")
 	blogmsg := <-blogch
-	fmt.Printf("\r\033[K%schecking email...", blogmsg)
+	fmt.Printf("\r\033[K%schecking blog msgz...", blogmsg)
+	blogmsgz := <-msgzch
+	fmt.Printf("\r\033[K%schecking email...", blogmsgz)
 	for _, cfg := range emailcfgs {
 		r := <-cfg.result
 		if len(r) > 0 {
