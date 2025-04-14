@@ -347,9 +347,13 @@ func main() {
 	msgzch := make(chan string, 1)
 	go func() {
 		err := func() error {
-			cookie, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".cache/iio"))
+			cookieData, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".config/.iio"))
 			if err != nil {
 				return fmt.Errorf("todo.ReadCookieFile: %v", err)
+			}
+			cookies := strings.Fields(string(cookieData))
+			if len(cookies) == 0 {
+				return fmt.Errorf("todo.EmptyCookieFile file=%s", filepath.Join(os.Getenv("HOME"), ".config/.iio"))
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
@@ -357,7 +361,7 @@ func main() {
 			if err != nil {
 				return fmt.Errorf("todo.NewMsgzRequest: %v", err)
 			}
-			request.AddCookie(&http.Cookie{Name: "session", Value: strings.TrimSpace(string(cookie))})
+			request.AddCookie(&http.Cookie{Name: "session", Value: cookies[0]})
 			response, err := http.DefaultClient.Do(request)
 			if err != nil {
 				return fmt.Errorf("todo.DoMsgzRequest: %v", err)
