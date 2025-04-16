@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"mime/quotedprintable"
@@ -381,7 +382,7 @@ func main() {
 				msgzch <- ""
 				return nil
 			}
-			msgzch <- fmt.Sprintf("blog.Msgz:\n  %s\n", strings.Join(lines[1:len(lines)-1], "\n  "))
+			msgzch <- fmt.Sprintf("blog.Msgz:\n  %s\n", html.UnescapeString(strings.Join(lines[1:len(lines)-1], "\n  ")))
 			return nil
 		}()
 		if err != nil {
