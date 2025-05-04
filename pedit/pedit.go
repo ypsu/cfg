@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"unsafe"
 
@@ -46,9 +47,8 @@ type workflow struct {
 	EncryptSection struct{}
 	newCiphertext  []byte
 
-	SaveSection struct{}
-
-	NoteSuccessSection struct{}
+	SaveSection   struct{}
+	BackupSection struct{}
 }
 
 func echo(show bool) {
@@ -72,6 +72,10 @@ func (wf *workflow) Load(ctx context.Context) (err error) {
 }
 
 func (wf *workflow) Getpass(ctx context.Context) error {
+	if wf.backupOnly {
+		return nil
+	}
+
 	fmt.Print("pedit.EnterPassword: ")
 	if !wf.echoPassword {
 		echo(false)
@@ -97,13 +101,16 @@ func (wf *workflow) Getpass(ctx context.Context) error {
 }
 
 func (wf *workflow) DeriveCipher(ctx context.Context) (err error) {
+	if wf.backupOnly {
+		return nil
+	}
 	key := argon2.IDKey([]byte("tmc4~tyőDKßVWaSa"), wf.password, 2, 256<<10, 2, chacha20poly1305.KeySize)
 	wf.aead, err = chacha20poly1305.NewX(key)
 	return err
 }
 
 func (wf *workflow) Decrypt(ctx context.Context) error {
-	if len(wf.oldCiphertext) == 0 {
+	if len(wf.oldCiphertext) == 0 || wf.backupOnly {
 		return nil
 	}
 
@@ -123,6 +130,9 @@ func (wf *workflow) Decrypt(ctx context.Context) error {
 }
 
 func (wf *workflow) Edit(ctx context.Context) error {
+	if wf.backupOnly {
+		return nil
+	}
 	tmpfile := "/dev/shm/peditdata"
 	defer os.Remove(tmpfile)
 	if err := os.WriteFile(tmpfile, wf.oldPlaintext, 0600); err != nil {
@@ -149,7 +159,7 @@ func (wf *workflow) Edit(ctx context.Context) error {
 }
 
 func (wf *workflow) Encrypt(ctx context.Context) error {
-	if wf.unchanged {
+	if wf.unchanged || wf.backupOnly {
 		return nil
 	}
 
@@ -174,17 +184,31 @@ func (wf *workflow) Encrypt(ctx context.Context) error {
 }
 
 func (wf *workflow) Save(ctx context.Context) error {
-	if wf.unchanged {
+	if wf.unchanged || wf.backupOnly {
 		return nil
 	}
 	return os.WriteFile(wf.file, wf.newCiphertext, 0644)
 }
 
-func (wf *workflow) NoteSuccess(ctx context.Context) error {
-	if wf.unchanged {
+func (wf *workflow) Backup(ctx context.Context) error {
+	if wf.unchanged && !wf.backupOnly {
 		return nil
 	}
-	fmt.Println("pedit.Done")
+	succeeded := 0
+	destinations, _ := os.ReadFile(wf.file + ".backup")
+	for _, destination := range strings.Fields(string(destinations)) {
+		fmt.Printf("pedit.Backup dst=%v\n", destination)
+		cmd := exec.CommandContext(ctx, "scp", wf.file, destination)
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
+		if err := cmd.Run(); err != nil {
+			fmt.Printf("pedit.BackupFailed dst=%v: %v\n", destination, err)
+			continue
+		}
+		succeeded++
+	}
+	if succeeded == 0 {
+		fmt.Printf("pedit.UpdatedWithoutBackup\n")
+	}
 	return nil
 }
 
