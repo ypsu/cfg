@@ -165,7 +165,7 @@ func (wf *workflow) CloneRepo(ctx context.Context) error {
 func (wf *workflow) SetupYBB(ctx context.Context) error {
 	ybbpath := filepath.Join(wf.bindir, "ybb")
 	cmd := exec.CommandContext(ctx, "go", "build", "-o", ybbpath, filepath.Join(wf.cfgdir, "ybb"))
-	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	cmd.Stdout, cmd.Stderr, cmd.Dir = os.Stdout, os.Stderr, wf.cfgdir
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("makecfg.BuildYBB: %v", err)
 	}
