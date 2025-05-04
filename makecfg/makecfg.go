@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/ypsu/cfg/gosuflow"
 	"github.com/ypsu/cfg/toollist"
 	"golang.org/x/sync/errgroup"
 )
@@ -75,11 +76,10 @@ var (
 )
 
 type workflow struct {
-	InstallPackagesSection struct{}
-
 	LookupDirectoriesSection                struct{}
 	homedir, bindir, ddir, cfgdir, trashdir string
 
+	InstallPackagesSection struct{}
 	CloneRepoSection struct{}
 	SetupYBBSection  struct{}
 
@@ -425,25 +425,5 @@ func (wf *workflow) ClearTrash(ctx context.Context) error {
 }
 
 func Run(ctx context.Context) error {
-	wf := workflow{}
-	steps := []struct {
-		name string
-		fn   func(ctx context.Context) error
-	}{
-		{"InstallPackages", wf.InstallPackages},
-		{"LookupDirectories", wf.LookupDirectories},
-		{"CloneRepo", wf.CloneRepo},
-		{"SetupYBB", wf.SetupYBB},
-		{"LinkDotfiles", wf.LinkDotfiles},
-		{"RegenDotfiles", wf.RegenDotfiles},
-		{"ClearUtils", wf.ClearUtils},
-		{"BuildUtils", wf.BuildUtils},
-		{"ClearTrash", wf.ClearTrash},
-	}
-	for _, step := range steps {
-		if err := step.fn(ctx); err != nil {
-			return fmt.Errorf("makecfg.RunStep step=%s: %v", step.name, err)
-		}
-	}
-	return nil
+	return gosuflow.Run(ctx, &workflow{})
 }
