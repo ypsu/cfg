@@ -28,7 +28,8 @@ func run(ctx context.Context) error {
 
 	toolname := os.Args[0]
 	if strings.HasSuffix(toolname, "/ybb") && len(os.Args) >= 2 {
-		toolname = filepath.Base(os.Args[1])
+		os.Args = os.Args[1:]
+		toolname = filepath.Base(os.Args[0])
 	}
 	for _, tool := range toollist.Tools {
 		tn, _, _ := strings.Cut(tool.Desc, ":")

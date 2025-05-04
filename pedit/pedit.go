@@ -15,17 +15,40 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"syscall"
 	"unsafe"
+
+	"github.com/ypsu/cfg/gosuflow"
 )
 
-var echoFlag = flag.Bool("e", false, "echo the password.")
+type workflow struct {
+	backupOnly   bool
+	echoPassword bool
+	file         string
+
+	LoadSection   struct{}
+	oldCiphertext []byte
+
+	GetpassSection struct{}
+	password       []byte
+
+	DecryptSection struct{}
+	oldPlaintext   []byte
+
+	EditSection  struct{}
+	unchanged    bool
+	newPlaintext []byte
+
+	EncryptSection struct{}
+	newCiphertext  []byte
+
+	SaveSection struct{}
+
+	NoteSuccessSection struct{}
+}
 
 func echo(show bool) {
-	if *echoFlag {
-		return
-	}
 	termios := &syscall.Termios{}
 	ptr := uintptr(unsafe.Pointer(termios))
 	fd := os.Stdout.Fd()
@@ -40,107 +63,146 @@ func echo(show bool) {
 	syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TCSETS, ptr)
 }
 
-func Run(context.Context) error {
-	flag.Parse()
+func (wf *workflow) Load(ctx context.Context) (err error) {
+	wf.oldCiphertext, err = os.ReadFile(wf.file)
+	return
+}
 
-	// read data.
-	filename := path.Join(os.Getenv("HOME"), ".contacts")
-	ciphertext, err := os.ReadFile(filename)
-	if err != nil {
-		log.Fatalf("couldn't load datafile: %v", err)
+func (wf *workflow) Getpass(ctx context.Context) error {
+	fmt.Print("pedit.EnterPassword: ")
+	if !wf.echoPassword {
+		echo(false)
+		defer fmt.Println()
+		defer echo(true)
+	}
+	response := make(chan []byte)
+	go func() {
+		var s []byte
+		s, _ = bufio.NewReader(os.Stdin).ReadSlice('\n')
+		if len(s) >= 1 {
+			s = s[:len(s)-1]
+		}
+		response <- s
+	}()
+
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("pedit.ReadPassword: %v", ctx.Err())
+	case wf.password = <-response:
+	}
+	return nil
+}
+
+func (wf *workflow) Decrypt(ctx context.Context) error {
+	if len(wf.oldCiphertext) == 0 {
+		return nil
 	}
 
-	// get password.
-	fmt.Println("enter password:")
-	echo(false)
-	pw, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	echo(true)
-	if err != nil {
-		log.Fatalf("couldn't read password: %v", err)
-	}
-	pw = pw[:len(pw)-1]
-
-	// create a cipher.
-	key := sha256.Sum256([]byte(pw))
+	key := sha256.Sum256([]byte(wf.password))
 	c, err := aes.NewCipher(key[:])
 	if err != nil {
-		log.Fatalf("couldn't create aes cipher: %v", err)
+		return fmt.Errorf("pedit.NewAESCipher: %v", err)
 	}
 	gcm, err := cipher.NewGCM(c)
 	if err != nil {
-		log.Fatalf("couldn't create gcm cipher: %v", err)
+		return fmt.Errorf("pedit.NewGCM: %v", err)
 	}
 
-	// decrypt and decompress if datafile is not empty.
-	var plaintext []byte
-	if len(ciphertext) > 0 {
-		nonce, ciphertext := ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():]
-		compressed, err := gcm.Open(nil, nonce, ciphertext, nil)
-		if err != nil {
-			log.Fatalf("couldn't decrypt: %v", err)
-		}
-		rd := flate.NewReader(bytes.NewBuffer(compressed))
-		if plaintext, err = io.ReadAll(rd); err != nil {
-			log.Fatalf("couldn't decompresss: %v", err)
-		}
-		if err = rd.Close(); err != nil {
-			log.Fatalf("couldn't close decompressor: %v", err)
-		}
+	nonce, ciphertext := wf.oldCiphertext[:gcm.NonceSize()], wf.oldCiphertext[gcm.NonceSize():]
+	compressed, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return fmt.Errorf("pedit.VerifiedOpen: %v", err)
 	}
+	rd := flate.NewReader(bytes.NewBuffer(compressed))
+	if wf.oldPlaintext, err = io.ReadAll(rd); err != nil {
+		return fmt.Errorf("pedit.Decompress: %v", err)
+	}
+	if err = rd.Close(); err != nil {
+		return fmt.Errorf("pedit.CloseDecompressor: %v", err)
+	}
+	return nil
+}
 
-	// edit the decrypted file.
+func (wf *workflow) Edit(ctx context.Context) error {
 	tmpfile := "/dev/shm/peditdata"
-	if err = os.WriteFile(tmpfile, plaintext, 0600); err != nil {
-		os.Remove(tmpfile)
-		log.Fatalf("couldn't write tempfile: %v", err)
+	defer os.Remove(tmpfile)
+	if err := os.WriteFile(tmpfile, wf.oldPlaintext, 0600); err != nil {
+		return fmt.Errorf("pedit.WriteTmpfile: %v", err)
 	}
-	vimargs := []string{
-		"-u", "NONE", "-i", "NONE", "-n", "-N", "-c", "set backspace=indent,eol,start", tmpfile,
-	}
+	vimargs := []string{"-u", "NONE", "-i", "NONE", "-n", "-N", "-c", "set backspace=indent,eol,start", tmpfile}
 	cmd := exec.Command("/usr/bin/vim", vimargs...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
-	if err = cmd.Run(); err != nil {
-		os.Remove(tmpfile)
-		log.Fatalf("running vim failed: %v", err)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("pedit.RunVim: %v", err)
 	}
 
-	// check if there was a change.
 	newtext, err := os.ReadFile(tmpfile)
-	os.Remove(tmpfile)
 	if err != nil {
-		log.Fatalf("couldn't read tempfile: %v", err)
+		return fmt.Errorf("pedit.ReadTmpfile: %v", err)
 	}
-	if bytes.Compare(newtext, plaintext) == 0 {
-		fmt.Println("no changed detected, skipping re-encryption.")
+	if bytes.Compare(wf.oldPlaintext, newtext) == 0 {
+		fmt.Println("pedit.NoChangeDetected (skipping re-encryption)")
+		wf.unchanged = true
 		return nil
 	}
-	plaintext = newtext
+	wf.newPlaintext = newtext
+	return nil
+}
 
-	// compress.
+func (wf *workflow) Encrypt(ctx context.Context) error {
+	if wf.unchanged {
+		return nil
+	}
+
 	buf := &bytes.Buffer{}
 	wr, err := flate.NewWriter(buf, 9)
 	if err != nil {
-		log.Fatalf("couldn't create compressor: %v", err)
+		return fmt.Errorf("pedit.CreateCompressor: %v", err)
 	}
-	if n, err := wr.Write(plaintext); n != len(plaintext) || err != nil {
-		log.Fatalf("couldn't compress: %v", err)
+	if n, err := wr.Write(wf.newPlaintext); n != len(wf.newPlaintext) || err != nil {
+		return fmt.Errorf("pedit.Compress: %v", err)
 	}
 	if err = wr.Close(); err != nil {
-		log.Fatalf("couldn't close compressor: %v", err)
+		return fmt.Errorf("pedit.CloseCompressor: %v", err)
 	}
-	plaintext = buf.Bytes()
 
-	// encrypt.
+	key := sha256.Sum256([]byte(wf.password))
+	c, err := aes.NewCipher(key[:])
+	if err != nil {
+		return fmt.Errorf("pedit.NewAESCipher: %v", err)
+	}
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return fmt.Errorf("pedit.NewGCM: %v", err)
+	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
-		log.Fatalf("couldn't create a nonce: %v", err)
+		return fmt.Errorf("pedit.NewNonce: %v", err)
 	}
-	ciphertext = gcm.Seal(nonce, nonce, plaintext, nil)
-
-	// write ciphertext back to the file.
-	if err = os.WriteFile(filename, ciphertext, 0644); err != nil {
-		log.Fatalf("couldn't rewrite the encrypted file: %v", err)
-	}
-	fmt.Println("done, don't forget to commit!")
+	wf.newCiphertext = gcm.Seal(nonce, nonce, buf.Bytes(), nil)
 	return nil
+}
+
+func (wf *workflow) Save(ctx context.Context) error {
+	if wf.unchanged {
+		return nil
+	}
+	return os.WriteFile(wf.file, wf.newCiphertext, 0644)
+}
+
+func (wf *workflow) NoteSuccess(ctx context.Context) error {
+	if wf.unchanged {
+		return nil
+	}
+	fmt.Println("pedit.Done")
+	return nil
+}
+
+func Run(ctx context.Context) error {
+	wf := &workflow{}
+	flag.BoolVar(&wf.backupOnly, "b", false, "Skip the view/update step, run the backup only.")
+	flag.BoolVar(&wf.echoPassword, "e", false, "Echo the password when entering it.")
+	flag.StringVar(&wf.file, "f", filepath.Join(os.Getenv("HOME"), ".contacts"), "File with the encrypted content to view/update.")
+	flag.Parse()
+	return gosuflow.Run(ctx, wf)
 }
