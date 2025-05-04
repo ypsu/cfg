@@ -5,10 +5,8 @@ import (
 	"bytes"
 	"compress/flate"
 	"context"
-	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha256"
 	"flag"
 	"fmt"
 	"io"
@@ -20,6 +18,8 @@ import (
 	"unsafe"
 
 	"github.com/ypsu/cfg/gosuflow"
+	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 type workflow struct {
@@ -32,6 +32,9 @@ type workflow struct {
 
 	GetpassSection struct{}
 	password       []byte
+
+	DeriveCipherSection struct{}
+	aead                cipher.AEAD
 
 	DecryptSection struct{}
 	oldPlaintext   []byte
@@ -93,25 +96,21 @@ func (wf *workflow) Getpass(ctx context.Context) error {
 	return nil
 }
 
+func (wf *workflow) DeriveCipher(ctx context.Context) (err error) {
+	key := argon2.IDKey([]byte("tmc4~tyőDKßVWaSa"), wf.password, 2, 256<<10, 2, chacha20poly1305.KeySize)
+	wf.aead, err = chacha20poly1305.NewX(key)
+	return err
+}
+
 func (wf *workflow) Decrypt(ctx context.Context) error {
 	if len(wf.oldCiphertext) == 0 {
 		return nil
 	}
 
-	key := sha256.Sum256([]byte(wf.password))
-	c, err := aes.NewCipher(key[:])
+	nonce, ciphertext := wf.oldCiphertext[:wf.aead.NonceSize()], wf.oldCiphertext[wf.aead.NonceSize():]
+	compressed, err := wf.aead.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
-		return fmt.Errorf("pedit.NewAESCipher: %v", err)
-	}
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		return fmt.Errorf("pedit.NewGCM: %v", err)
-	}
-
-	nonce, ciphertext := wf.oldCiphertext[:gcm.NonceSize()], wf.oldCiphertext[gcm.NonceSize():]
-	compressed, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return fmt.Errorf("pedit.VerifiedOpen: %v", err)
+		return fmt.Errorf("pedit.AuthenticatedOpen: %v", err)
 	}
 	rd := flate.NewReader(bytes.NewBuffer(compressed))
 	if wf.oldPlaintext, err = io.ReadAll(rd); err != nil {
@@ -166,20 +165,11 @@ func (wf *workflow) Encrypt(ctx context.Context) error {
 		return fmt.Errorf("pedit.CloseCompressor: %v", err)
 	}
 
-	key := sha256.Sum256([]byte(wf.password))
-	c, err := aes.NewCipher(key[:])
-	if err != nil {
-		return fmt.Errorf("pedit.NewAESCipher: %v", err)
-	}
-	gcm, err := cipher.NewGCM(c)
-	if err != nil {
-		return fmt.Errorf("pedit.NewGCM: %v", err)
-	}
-	nonce := make([]byte, gcm.NonceSize())
+	nonce := make([]byte, wf.aead.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
 		return fmt.Errorf("pedit.NewNonce: %v", err)
 	}
-	wf.newCiphertext = gcm.Seal(nonce, nonce, buf.Bytes(), nil)
+	wf.newCiphertext = wf.aead.Seal(nonce, nonce, buf.Bytes(), nil)
 	return nil
 }
 
