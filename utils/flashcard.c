@@ -217,7 +217,7 @@ int main(void) {
       puts("wrong answer, try again!");
     }
     printf("correct! repeat was %d days. new value?\n", acard->days);
-    scanf("%d", &acard->days);
+    check(scanf("%d", &acard->days) == 1);
   }
 
   // savedata: write the result back into the file.

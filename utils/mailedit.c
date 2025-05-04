@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
     printf("%d emails missing from the whitelist. ", missingcnt);
     printf("(i)gnore, (a)dd, (e)dit again?\n");
     char response[16];
-    scanf("%15s", response);
+    check(scanf("%15s", response) == 1);
     if (response[0] == 'i') break;
     if (response[0] != 'a') continue;
 
