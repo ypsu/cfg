@@ -1,9 +1,10 @@
-package main
+package pedit
 
 import (
 	"bufio"
 	"bytes"
 	"compress/flate"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -39,7 +40,7 @@ func echo(show bool) {
 	syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TCSETS, ptr)
 }
 
-func main() {
+func Run(context.Context) error {
 	flag.Parse()
 
 	// read data.
@@ -111,13 +112,13 @@ func main() {
 	}
 	if bytes.Compare(newtext, plaintext) == 0 {
 		fmt.Println("no changed detected, skipping re-encryption.")
-		return
+		return nil
 	}
 	plaintext = newtext
 
 	// compress.
 	buf := &bytes.Buffer{}
-	wr,  err := flate.NewWriter(buf, 9)
+	wr, err := flate.NewWriter(buf, 9)
 	if err != nil {
 		log.Fatalf("couldn't create compressor: %v", err)
 	}
@@ -141,4 +142,5 @@ func main() {
 		log.Fatalf("couldn't rewrite the encrypted file: %v", err)
 	}
 	fmt.Println("done, don't forget to commit!")
+	return nil
 }
