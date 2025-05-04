@@ -275,13 +275,16 @@ func (wf *workflow) ClearUtils(ctx context.Context) error {
 		want[strings.TrimSuffix(base, filepath.Ext(base))] = true
 	}
 
-	// Add special cases.
-	want["amutt"] = true
+	// Add ybb tools.
 	want["ybb"] = true
 	for _, tool := range toollist.Tools {
 		name, _, _ := strings.Cut(tool.Desc, ":")
 		want[name] = true
 	}
+
+	// Add misc special cases.
+	want["amutt"] = true
+	want["yt-dlp"] = true
 
 	var unwanted []string
 	bins, err := filepath.Glob(filepath.Join(wf.bindir, "*"))
