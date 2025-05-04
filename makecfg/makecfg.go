@@ -241,22 +241,27 @@ func (wf *workflow) RegenDotfiles(ctx context.Context) error {
 		}
 
 		// Show diff and set content if the user accepts it.
-		prompt := fmt.Sprintf("Create ~/.%s?", base)
 		if exists(targetFile) {
-			prompt = fmt.Sprintf("Update ~/.%s?", base)
 			diffcmd := exec.CommandContext(ctx,
 				"diff", "-u",
 				"--label=live/"+base, "--label=head/"+base,
 				targetFile, "/dev/stdin")
 			diffcmd.Stdin, diffcmd.Stdout, diffcmd.Stdout = &output, os.Stdout, os.Stderr
 			diffcmd.Run()
+			if err := promptedrun(ctx, true, fmt.Sprintf("Update ~/.%s?", base), func() error {
+				return os.WriteFile(targetFile, newContent, 0644)
+			}); err != nil {
+				return fmt.Errorf("makecfg.UpdateDotfile file=%s: %v", base, err)
+			}
+			fmt.Printf("makecfg.UpdatedDotfile file=%s\n", base)
+		} else {
+			if err := promptedrun(ctx, true, fmt.Sprintf("Update ~/.%s?", base), func() error {
+				return os.WriteFile(targetFile, newContent, 0644)
+			}); err != nil {
+				return fmt.Errorf("makecfg.CreateDotfile file=%s: %v", base, err)
+			}
+			fmt.Printf("makecfg.CreatedDotfile file=%s\n", base)
 		}
-		if err := promptedrun(ctx, true, prompt, func() error {
-			return os.WriteFile(targetFile, newContent, 0644)
-		}); err != nil {
-			return fmt.Errorf("makecfg.UpdateDotfile file=%s: %v", base, err)
-		}
-		fmt.Printf("makecfg.UpdatedDotfile file=%s\n", base)
 	}
 	return nil
 }
