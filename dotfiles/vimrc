@@ -256,14 +256,14 @@ endfunction
 function SetCPPCommands()
 	map <F5> :!./a.out <CR>
 	map <Leader><F5> :call writefile(["r", "bt"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
-	map <F6> :!g++ -std=c++11 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
-	map <Leader><F6> :!clang++ -std=c++11 -fsyntax-only -Weverything '%:p' && clang++ -std=c++11 --analyze --analyzer-output text -o /dev/null '%:p' && g++ -std=c++11 -Wall -Wextra -O2 -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <F6> :!g++ -std=c++23 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader><F6> :!clang++ -std=c++23 -fsyntax-only -Weverything '%:p' && clang++ -std=c++23 --analyze --analyzer-output text -o /dev/null '%:p' && g++ -std=c++23 -Wall -Wextra -O2 -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
 	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
 	map <F8> :!valgrind ./a.out <CR>
-	map <Leader><F8> :!g++ -std=c++11 -fprofile-arcs -ftest-coverage '%:p'; ./a.out; gcov -a -b -c '%:p'; vim '%:p.gcov'; rm %:p:r.{gcda,gcno} *.gcov; rm a.out <CR>
+	map <Leader><F8> :!g++ -std=c++23 -fprofile-arcs -ftest-coverage '%:p'; ./a.out; gcov -a -b -c '%:p'; vim '%:p.gcov'; rm %:p:r.{gcda,gcno} *.gcov; rm a.out <CR>
 
 	com! LT 1,$d | r ~/.template.cpp | 1d | 33
-	map <Leader>1 :!g++ -std=c++11 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader>1 :!g++ -std=c++23 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
 	map <Leader>2 :!./a.out <CR>
 	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
 endfunction
