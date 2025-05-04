@@ -300,8 +300,8 @@ func main() {
 		fmt.Printf("tasks:\n  %s\n\n", strings.Join(activetasks, "\n  "))
 	}
 
-	// Check for alerts on my blog.
-	msgzch := make(chan string, 1)
+	// Check for events on my blog.
+	eventzch := make(chan string, 1)
 	go func() {
 		err := func() error {
 			cookieData, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".config/.iio"))
@@ -314,35 +314,35 @@ func main() {
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
-			request, err := http.NewRequestWithContext(ctx, "GET", "https://iio.ie/msgz", nil)
+			request, err := http.NewRequestWithContext(ctx, "GET", "https://iio.ie/eventz", nil)
 			if err != nil {
-				return fmt.Errorf("todo.NewMsgzRequest: %v", err)
+				return fmt.Errorf("todo.NewEventzRequest: %v", err)
 			}
 			request.AddCookie(&http.Cookie{Name: "session", Value: cookies[0]})
 			response, err := http.DefaultClient.Do(request)
 			if err != nil {
-				return fmt.Errorf("todo.DoMsgzRequest: %v", err)
+				return fmt.Errorf("todo.DoEventzRequest: %v", err)
 			}
 			body, err := io.ReadAll(response.Body)
 			if err := response.Body.Close(); err != nil {
-				return fmt.Errorf("todo.CloseMsgzBody: %v", err)
+				return fmt.Errorf("todo.CloseEventzBody: %v", err)
 			}
 			if err != nil {
-				return fmt.Errorf("todo.ReadMsgzBody: %v", err)
+				return fmt.Errorf("todo.ReadEventzBody: %v", err)
 			}
 			if response.StatusCode != http.StatusOK {
-				return fmt.Errorf("todo.CheckMsgzStatus status=%q: %s", response.Status, bytes.TrimSpace(body))
+				return fmt.Errorf("todo.CheckEventzStatus status=%q: %s", response.Status, bytes.TrimSpace(body))
 			}
 			lines := strings.Split(string(bytes.TrimSpace(body)), "\n")
 			if len(lines) == 2 {
-				msgzch <- ""
+				eventzch <- ""
 				return nil
 			}
-			msgzch <- fmt.Sprintf("blog.Msgz:\n  %s\n", html.UnescapeString(strings.Join(lines[1:len(lines)-1], "\n  ")))
+			eventzch <- fmt.Sprintf("blog.Eventz:\n  %s\n", html.UnescapeString(strings.Join(lines[1:len(lines)-1], "\n  ")))
 			return nil
 		}()
 		if err != nil {
-			msgzch <- fmt.Sprintf("todo.MsgzCheckFailed: %v\n", err)
+			eventzch <- fmt.Sprintf("todo.EventzCheckFailed: %v\n", err)
 		}
 	}()
 
@@ -433,9 +433,9 @@ func main() {
 		}()
 	}
 
-	fmt.Printf("checking blog msgz...")
-	blogmsgz := <-msgzch
-	fmt.Printf("\r\033[K%schecking email...", blogmsgz)
+	fmt.Printf("checking blog eventz...")
+	blogeventz := <-eventzch
+	fmt.Printf("\r\033[K%schecking email...", blogeventz)
 	for _, cfg := range emailcfgs {
 		r := <-cfg.result
 		if len(r) > 0 {
