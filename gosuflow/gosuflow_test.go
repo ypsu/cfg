@@ -43,6 +43,8 @@ func TestRun(t *testing.T) {
 	efftesting.Must(Run(t.Context(), hw))
 	et.Expect("Greeting", hw.greeting, "Hello alice!")
 	et.Expect("Done", hw.done, "true")
+
+	et.Expect("BadUsage", Run(t.Context(), HelloWorld{}), "gosuflow.MissingMethod method=Hello")
 }
 
 func TestMain(m *testing.M) {
