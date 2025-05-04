@@ -255,9 +255,7 @@ func (wf *workflow) RegenDotfiles(ctx context.Context) error {
 			}
 			fmt.Printf("makecfg.UpdatedDotfile file=%s\n", base)
 		} else {
-			if err := promptedrun(ctx, true, fmt.Sprintf("Update ~/.%s?", base), func() error {
-				return os.WriteFile(targetFile, newContent, 0644)
-			}); err != nil {
+			if err := os.WriteFile(targetFile, newContent, 0644); err != nil {
 				return fmt.Errorf("makecfg.CreateDotfile file=%s: %v", base, err)
 			}
 			fmt.Printf("makecfg.CreatedDotfile file=%s\n", base)
