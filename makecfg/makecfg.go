@@ -80,8 +80,8 @@ type workflow struct {
 	homedir, bindir, ddir, cfgdir, trashdir string
 
 	InstallPackagesSection struct{}
-	CloneRepoSection struct{}
-	SetupYBBSection  struct{}
+	CloneRepoSection       struct{}
+	SetupYBBSection        struct{}
 
 	LinkDotfilesSection struct{}
 	dynamicDotfiles     []string
