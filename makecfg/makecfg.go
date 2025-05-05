@@ -172,6 +172,12 @@ func (wf *workflow) SetupYBB(ctx context.Context) error {
 
 	for _, tool := range toollist.Tools {
 		name, _, _ := strings.Cut(tool.Desc, ":")
+		if name == "makecfg" {
+			// This is special case, this must always run freshly built.
+			// That's achieved via a pre-existing wrapper in utils.
+			continue
+		}
+
 		target := filepath.Join(wf.bindir, name)
 		symlink, _ := os.Readlink(target)
 		if symlink == ybbpath {
