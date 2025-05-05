@@ -26,6 +26,7 @@
 *multiScroll: true
 *openIm: false
 *pointerMode: 2
+*pointerShape: left_ptr
 *ptyInitialErase: true
 *saveLines: 10000
 *scrollKey: true
