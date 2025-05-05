@@ -173,7 +173,7 @@ func (wf *workflow) SetupYBB(ctx context.Context) error {
 	for _, tool := range toollist.Tools {
 		name, _, _ := strings.Cut(tool.Desc, ":")
 		target := filepath.Join(wf.bindir, name)
-		symlink, _ := filepath.EvalSymlinks(target)
+		symlink, _ := os.Readlink(target)
 		if symlink == ybbpath {
 			continue
 		}
@@ -204,7 +204,7 @@ func (wf *workflow) LinkDotfiles(ctx context.Context) error {
 			continue
 		}
 		target := filepath.Join(wf.homedir, "."+base)
-		symlink, _ := filepath.EvalSymlinks(target)
+		symlink, _ := os.Readlink(target)
 		if symlink == dotfile {
 			continue
 		}
@@ -331,7 +331,7 @@ func (wf *workflow) BuildUtils(ctx context.Context) error {
 		if ext == "" {
 			// This should be symlinked.
 			target := filepath.Join(wf.bindir, base)
-			symlink, _ := filepath.EvalSymlinks(target)
+			symlink, _ := os.Readlink(target)
 			if symlink == util {
 				continue
 			}
