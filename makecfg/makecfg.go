@@ -11,8 +11,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ypsu/cfg/gosuflow"
 	"github.com/ypsu/cfg/toollist"
+	"github.com/ypsu/gosuflow"
 	"golang.org/x/sync/errgroup"
 )
 
