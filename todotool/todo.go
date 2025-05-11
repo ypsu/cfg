@@ -1,4 +1,4 @@
-package main
+package todotool
 
 import (
 	"bytes"
@@ -153,13 +153,13 @@ func normalizedate(s string, item string) string {
 	return norm + s[8:]
 }
 
-func main() {
+func Run(ctx context.Context) error {
 	// prefer running wtodo if available.
 	if p, err := exec.LookPath("wtodo"); err == nil {
 		cmd := exec.Command(p, os.Args[1:]...)
 		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 		cmd.Run()
-		return
+		return nil
 	}
 
 	flag.Usage = usage
@@ -218,7 +218,7 @@ func main() {
 			for i, f := range fields {
 				if f == "b:urgent" {
 					fmt.Println(line)
-					return
+					return nil
 				}
 				if strings.HasPrefix(f, "b:20") {
 					fields[i] = "b:" + normalizedate(f[2:], line)
@@ -312,7 +312,7 @@ func main() {
 			if len(cookies) == 0 {
 				return fmt.Errorf("todo.EmptyCookieFile file=%s", filepath.Join(os.Getenv("HOME"), ".config/.iio"))
 			}
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 			defer cancel()
 			request, err := http.NewRequestWithContext(ctx, "GET", "https://iio.ie/eventz", nil)
 			if err != nil {
@@ -443,4 +443,5 @@ func main() {
 		}
 	}
 	fmt.Printf("\r\033[K")
+	return nil
 }

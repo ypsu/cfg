@@ -12,6 +12,7 @@ import (
 
 	"github.com/ypsu/cfg/makecfg"
 	"github.com/ypsu/cfg/pedit"
+	"github.com/ypsu/cfg/todotool"
 	"github.com/ypsu/cfg/toollist"
 
 	_ "embed"
@@ -24,6 +25,7 @@ func run(ctx context.Context) error {
 	toollist.Tools = []toollist.Tool{
 		{makecfg.Run, "makecfg: Sets up ~/.bin and other stuff."},
 		{pedit.Run, "pedit: Edit a password protected file."},
+		{todotool.Run, "todo: Print my active task queue."},
 	}
 
 	toolname := os.Args[0]
