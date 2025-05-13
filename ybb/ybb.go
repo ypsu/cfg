@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/ypsu/cfg/gdsnap"
 	"github.com/ypsu/cfg/makecfg"
 	"github.com/ypsu/cfg/pedit"
 	"github.com/ypsu/cfg/todotool"
@@ -23,6 +24,7 @@ var ybbsrc string
 
 func run(ctx context.Context) error {
 	toollist.Tools = []toollist.Tool{
+		{gdsnap.Run, "gdsnap: Google Drive SNAPshotter, manages backups."},
 		{makecfg.Run, "makecfg: Sets up ~/.bin and other stuff."},
 		{pedit.Run, "pedit: Edit a password protected file."},
 		{todotool.Run, "todo: Print my active task queue."},

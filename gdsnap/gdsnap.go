@@ -1,9 +1,10 @@
-package main
+package gdsnap
 
 import (
 	"bufio"
 	"bytes"
 	"compress/flate"
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
@@ -1218,7 +1219,7 @@ func readconfig() {
 	}
 }
 
-func main() {
+func Run(ctx context.Context) error {
 	go func() {
 		sigquitch := make(chan os.Signal, 1)
 		signal.Notify(sigquitch, syscall.SIGQUIT)
@@ -1236,7 +1237,7 @@ func main() {
 	subcommand := flag.Arg(0)
 	if len(subcommand) == 0 {
 		usage()
-		return
+		return nil
 	}
 	args := flag.Args()[1:]
 	for _, a := range args {
@@ -1311,4 +1312,6 @@ func main() {
 	default:
 		log.Fatalf("error: unrecognized subcommand %q.", subcommand)
 	}
+
+	return nil
 }
