@@ -5,9 +5,8 @@ import (
 	"bytes"
 	"compress/flate"
 	"context"
-	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -32,6 +31,9 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
+
+	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 func usage() {
@@ -134,7 +136,6 @@ type fileinfo struct {
 	Trashed      bool
 	MimeType     string
 	ModifiedTime string
-	MD5Checksum  string
 }
 
 type gdsnap struct {
@@ -142,8 +143,7 @@ type gdsnap struct {
 	tokenbirth  time.Time
 	files       map[string]fileinfo
 	ignore      []string
-	gcm         cipher.AEAD
-	nonce       []byte
+	aead        cipher.AEAD
 }
 
 func hostname() string {
@@ -353,6 +353,14 @@ func warn() {
 	}
 }
 
+func namePart(s string) string {
+	return path.Dir(s)
+}
+
+func shasumPart(s string) string {
+	return path.Base(s)
+}
+
 func (gs *gdsnap) listfiles() {
 	if len(gs.accesstoken) == 0 {
 		gs.gettoken()
@@ -367,7 +375,7 @@ func (gs *gdsnap) listfiles() {
 
 	// list existing files.
 	q := url.Values{}
-	q.Set("fields", "files(name,id,size,mimeType,modifiedTime,trashed,md5Checksum,properties),nextPageToken,incompleteSearch")
+	q.Set("fields", "files(name,id,size,mimeType,modifiedTime,trashed,properties),nextPageToken,incompleteSearch")
 	q.Set("pageSize", "1000")
 	q.Set("q", fmt.Sprintf("'%s' in parents and properties has {key='gdsnap.profile' and value='%s'}", *gdirFlag, *profileFlag))
 	for {
@@ -393,7 +401,7 @@ func (gs *gdsnap) listfiles() {
 			log.Fatal("response was incomplete.")
 		}
 		for _, f := range r.Files {
-			files[f.Name] = f
+			files[namePart(f.Name)] = f
 		}
 		if len(r.NextPageToken) == 0 {
 			break
@@ -408,18 +416,12 @@ func (gs *gdsnap) init() {
 		gs.ignore = strings.Split(*ignoreFlag, ",")
 	}
 
-	key := sha256.Sum256([]byte("a long static string for salt;" + *passwordFlag))
-	c, err := aes.NewCipher(key[:])
+	key := argon2.IDKey([]byte("tmc4~tyőDKßVWaSa"), []byte(*passwordFlag), 1, 64<<10, 4, chacha20poly1305.KeySize)
+	var err error
+	gs.aead, err = chacha20poly1305.NewX(key)
 	if err != nil {
-		log.Fatalf("couldn't create encryption cipher: %v", err)
+		log.Fatalf("gdsnap.CreateChachaCipher: %v", err)
 	}
-	gs.gcm, err = cipher.NewGCM(c)
-	if err != nil {
-		log.Fatalf("couldn't create gcm cipher: %v", err)
-	}
-	// empty nonce so that md5sum checksumming works.
-	// ummm.... i guess aes is good enough on its own.
-	gs.nonce = make([]byte, gs.gcm.NonceSize())
 }
 
 type gfileProperties struct {
@@ -479,6 +481,7 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	var contents []byte
 	var needTrashing bool
 	var modtime string
+	var shasumstr string
 	newfi := fi
 	if err != nil || ignore {
 		needTrashing = true
@@ -545,14 +548,17 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 			if err := compressor.Close(); err != nil {
 				log.Fatalf("couldn't close compressor for %s: %v", relpath, err)
 			}
-			contents = gs.gcm.Seal(nil, gs.nonce, compressed.Bytes(), nil)
+			nonce := make([]byte, gs.aead.NonceSize())
+			if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+				log.Fatalf("gdsnap.ReadNewNonce: %v", err)
+			}
+			contents = gs.aead.Seal(nonce, nonce, compressed.Bytes(), nil)
 
-			// skip if md5sum already matches.
-			md5sum := md5.Sum(contents)
-			md5str := hex.EncodeToString(md5sum[:])
+			// Skip if sha256sum already matches.
+			shasum := sha256.Sum256(rawcontents)
+			shasumstr = hex.EncodeToString(shasum[:])
 			newfi.Size = strconv.Itoa(len(contents))
-			newfi.MD5Checksum = md5str
-			if !fi.Trashed && newfi.Size == fi.Size && md5str == fi.MD5Checksum {
+			if !fi.Trashed && newfi.Size == fi.Size && shasumstr == shasumPart(fi.Name) {
 				return
 			}
 		}
@@ -562,13 +568,13 @@ func (gs *gdsnap) savepath(abspath string, verbose bool) {
 	ct := gfileProperties{}
 	if !exist {
 		ct = gfileProperties{
-			Name:       relpath,
+			Name:       relpath + "/" + shasumstr,
 			Parents:    []string{*gdirFlag},
 			Properties: map[string]string{"gdsnap.profile": *profileFlag},
 		}
 	} else {
 		ct = gfileProperties{
-			Name:    relpath,
+			Name:    relpath + "/" + shasumstr,
 			Trashed: &needTrashing,
 		}
 	}
@@ -811,7 +817,7 @@ func (gs *gdsnap) subcommandList(args []string) {
 	out := bufio.NewWriter(os.Stdout)
 	defer out.Flush()
 	q := url.Values{}
-	q.Set("fields", "revisions(originalFilename,id,size,modifiedTime,mimeType,md5Checksum)")
+	q.Set("fields", "revisions(originalFilename,id,size,modifiedTime,mimeType)")
 	q.Set("pageSize", "1000")
 	for _, f := range filterfiles(gs.files, args) {
 		fi := gs.files[f]
@@ -858,19 +864,23 @@ func (gs *gdsnap) decrypt(fi *fileinfo, mime string, content []byte) (string, []
 	if !strings.HasPrefix(mime, "gdsnap/data") {
 		return mime, content
 	}
-	// decrypt and decompress the file.
-	compressed, err := gs.gcm.Open(nil, gs.nonce, content, nil)
+	if len(content) < gs.aead.NonceSize() {
+		log.Printf("gdsnap.ContentTooShortToDecrypt name=%s got=%d want=%d", namePart(fi.Name), len(content), gs.aead.NonceSize())
+		return mime, content
+	}
+	// Decrypt and decompress the file.
+	compressed, err := gs.aead.Open(nil, content[:gs.aead.NonceSize()], content[gs.aead.NonceSize():], nil)
 	if err != nil {
-		log.Printf("couldn't decrypt %s: %v", fi.Name, err)
+		log.Printf("gdsnap.OpenEncryptedContent name=%s: %s", namePart(fi.Name), err)
 		return mime, content
 	}
 	decompressor := flate.NewReader(bytes.NewBuffer(compressed))
 	if content, err = io.ReadAll(decompressor); err != nil {
-		log.Printf("couldn't decompress %s: %v", fi.Name, err)
+		log.Printf("gdsnap.Decompress name=%s: %s", namePart(fi.Name), err)
 		return mime, content
 	}
 	if err = decompressor.Close(); err != nil {
-		log.Printf("couldn't close the decompressor for %s: %v", fi.Name, err)
+		log.Printf("gdsnap.CloseDecompressor name=%s: %s", namePart(fi.Name), err)
 	}
 	return mime, content
 }
@@ -889,11 +899,11 @@ func (gs *gdsnap) revfetch(fi *fileinfo, skipDate string) (mime string, content 
 		getreq.Header.Set("Authorization", "Bearer "+gs.accesstoken)
 		getresp, err := http.DefaultClient.Do(getreq)
 		if err != nil {
-			log.Fatalf("error fetching contents for %s: %v", fi.Name, err)
+			log.Fatalf("error fetching contents for %s: %v", namePart(fi.Name), err)
 		}
 		contents, err := io.ReadAll(getresp.Body)
 		if err != nil {
-			log.Fatalf("error reading contents for %s: %v", fi.Name, err)
+			log.Fatalf("error reading contents for %s: %v", namePart(fi.Name), err)
 		}
 		return gs.decrypt(fi, fi.MimeType, contents)
 	}
@@ -905,21 +915,21 @@ func (gs *gdsnap) revfetch(fi *fileinfo, skipDate string) (mime string, content 
 	}
 
 	q := url.Values{}
-	q.Set("fields", "revisions(originalFilename,id,size,modifiedTime,mimeType,md5Checksum)")
+	q.Set("fields", "revisions(originalFilename,id,size,modifiedTime,mimeType)")
 	q.Set("pageSize", "1000")
 	req, err := http.NewRequest("GET", "https://www.googleapis.com/drive/v3/files/"+fi.ID+"/revisions?"+q.Encode(), nil)
 	if err != nil {
-		log.Fatalf("couldn't create request for %s: %v", fi.Name, err)
+		log.Fatalf("couldn't create request for %s: %v", namePart(fi.Name), err)
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+gs.accesstoken)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatalf("error listing revisions for %s: %v", fi.Name, err)
+		log.Fatalf("error listing revisions for %s: %v", namePart(fi.Name), err)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("error reading revisions for %s: %v", fi.Name, err)
+		log.Fatalf("error reading revisions for %s: %v", namePart(fi.Name), err)
 	}
 	var revisionsResponse struct {
 		Revisions []revinfo
@@ -950,11 +960,11 @@ func (gs *gdsnap) revfetch(fi *fileinfo, skipDate string) (mime string, content 
 	getreq.Header.Set("Authorization", "Bearer "+gs.accesstoken)
 	getresp, err := http.DefaultClient.Do(getreq)
 	if err != nil {
-		log.Fatalf("error fetching contents for %s: %v", fi.Name, err)
+		log.Fatalf("error fetching contents for %s: %v", namePart(fi.Name), err)
 	}
 	contents, err := io.ReadAll(getresp.Body)
 	if err != nil {
-		log.Fatalf("error reading contents for %s: %v", fi.Name, err)
+		log.Fatalf("error reading contents for %s: %v", namePart(fi.Name), err)
 	}
 	return gs.decrypt(fi, ri.MimeType, contents)
 }
