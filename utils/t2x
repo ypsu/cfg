@@ -1,0 +1,16 @@
+#!/bin/bash
+
+pts=$(tmux display-message -p '#{client_tty}' | sed s:/dev/::)
+pid=$(pgrep -t "$pts" tmux)
+if test "$pid" = ""; then
+	exit 1
+fi
+env=/proc/$pid/environ
+display=$(tr '\0' '\n' <$env | grep '^DISPLAY=' | awk -F= '{print $2}')
+
+if test "$display" = ""; then
+	exit
+fi
+
+tmux save-buffer "$@" - | DISPLAY="$display" nohup >/dev/null 2>/dev/null \
+	xclip -selection clipboard -i

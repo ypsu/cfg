@@ -1,0 +1,24 @@
+#!/bin/bash
+# reset x settings to reasonable defaults.
+if test "$HOSTNAME" = ipi; then
+  xsetroot -solid '#ffffff'
+else
+  xsetroot -solid '#000'
+fi
+xsetroot -cursor_name arrow
+xset b off
+xset r rate 300 40
+xset s off
+xset -dpms
+if test "$HOSTNAME" != ipi && test "$HOSTNAME" != tvgep && test "$HOSTNAME" != gamer; then
+  # enable screensaving on some of my machines.
+  xset s noblank
+  xset s 900
+  xset dpms 1200 1200 1200
+  x11lock stop >/dev/null
+  x11lock start
+fi
+xset +fp ~/.fonts
+xrdb ~/.Xdefaults
+setxkbmap -option caps:escape
+xmodmap ~/.xmodmap

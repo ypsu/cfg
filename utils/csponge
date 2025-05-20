@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if test "$1" = "-h" || test "$1" = "--help"; then
+  echo "csponge - clear screen, read full stdin and then dump it."
+  echo "very similar to the watch tool in the sense that it only updates the"
+  echo "screen once the subcommand has finished."
+  echo
+  echo "usage: [some commands] | csponge [optional_msg]"
+  exit 0
+fi
+
+if test "$#" -gt 0; then
+  echo -e "$@"
+fi
+(clear; cat) | sponge

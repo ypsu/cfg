@@ -1,0 +1,30 @@
+/boot/cmdline.txt on my raspberry pi:
+	root=/dev/mmcblk0p2 rw rootwait console=ttyAMA0,115200 console=tty1 selinux=0 plymouth.enable=0 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 kgdboc=ttyAMA0,115200 elevator=deadline loglevel=2 init=/root/.sbin/init rootfstype=ext4 rootwait ro logo.nologo consoleblank=0
+
+/boot/config.txt overrides on my raspberry pi:
+	framebuffer_depth=16
+	disable_overscan=1
+
+For faster wicd startup apply this patch in /usr/share/wicd/daemon/:
+	--- monitor.py.orig     2013-06-05 23:20:32.795654532 +0200
+	+++ monitor.py  2013-06-05 23:24:17.311105727 +0200
+	@@ -86,6 +86,8 @@
+	         self.trigger_reconnect = False
+	         self.__lost_dbus_count = 0
+	         self._to_time = daemon.GetBackendUpdateInterval()
+	+
+	+        self.update_connection_status()
+	         
+	         self.add_poll_callback()
+	         bus = dbusmanager.get_bus()
+	--- wicd-daemon.py.orig 2013-06-05 21:19:06.738904653 +0200
+	+++ wicd-daemon.py      2013-06-05 23:28:12.147094890 +0200
+	@@ -122,7 +122,7 @@
+	         if not auto_connect:
+	             print "--no-autoconnect detected, not autoconnecting..."
+	             self.SetForcedDisconnect(True)
+	-        self.wireless_bus.Scan()
+	+        #self.wireless_bus.Scan()
+	 
+	     def get_debug_mode(self):
+	         return self._debug_mode

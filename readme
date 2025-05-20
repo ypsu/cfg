@@ -1,0 +1,4 @@
+This is just a collection of scripts and settings which I use on my Linux computers.
+This is intended for private usage, mainly for backup reasons.
+
+Note to self: run `go run github.com/ypsu/cfg/ybb@latest makecfg` to set this up.

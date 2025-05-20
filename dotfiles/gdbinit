@@ -1,0 +1,29 @@
+set history save
+set history filename ~/.gdb_history
+set auto-load safe-path /
+
+# C++ pretty printers
+#python
+#import sys
+#sys.path.insert(0, '/home/rlblaster/.gdb/python')
+#from libstdcxx.v6.printers import register_libstdcxx_printers
+#register_libstdcxx_printers (None)
+#end
+
+
+# GMP debug functions
+define pz
+set __gmpz_dump($arg0)
+end
+
+define pq
+set __gmpz_dump(&$arg0->_mp_num)
+echo /\n
+set __gmpz_dump(&$arg0->_mp_den)
+echo \n
+printf "%f\n", ((double (*) (long)) __gmpq_get_d)($arg0)
+end
+
+define pf
+set __gmpf_dump($arg0)
+end

@@ -1,0 +1,3 @@
+#!/bin/bash
+lines="$(tput lines)"
+head -n "$((lines - 3))"

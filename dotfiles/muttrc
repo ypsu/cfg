@@ -1,0 +1,111 @@
+set folder = imaps://imap.gmail.com  # this must come before spoolfile.
+`muttcfg`
+set editor = "mailedit"
+set header_cache = /tmp/cache/mutt/
+set message_cachedir = /tmp/cache/mutt/
+set tmpdir = /tmp/cache/mutt/
+set postponed = "+[Gmail]/Drafts"
+set reply_regexp = "^((re:)|(fwd?:)|(aw:)|(\\[[^]]*\\])| )*"
+unset record
+unset imap_passive
+set imap_keepalive = 300
+set mail_check = 120
+set hostname = mutt
+set reverse_name = yes
+set reverse_realname = yes
+
+set smtp_url = smtps://$imap_user:$imap_pass@smtp.gmail.com
+set ssl_force_tls = yes
+set ssl_starttls = yes
+
+# don't quote (quoting while top posting is irrational)
+set indent_string = ""
+
+color normal    default default
+color attachment brightyellow default
+color hdrdefault cyan default
+color indicator brightwhite white
+color markers   brightred default
+color quoted    green default
+color signature cyan default
+color status    default white
+color tilde     blue default
+color tree      red default
+color body      brightred default [\-\.+_a-zA-Z0-9]+@[\-\.a-zA-Z0-9]+
+color body      brightblue default (https?|ftp)://[\-\.\,/%~_:?\#a-zA-Z0-9\=\&]+
+color search   brightmagenta default
+color quoted1 brightyellow default
+color quoted2 red default
+color hdrdefault cyan default
+color header   brightred default ^Subject:
+color header   brightgreen default ^From:
+color signature cyan default
+color index green default '~n 50-59' 
+color index brightgreen default '~n 60-79' 
+color index brightyellow default '~n 80-89' 
+color index red default '~n 90-99' 
+color index brightred default '~n 100-'
+color index brightblue default '~T' # Tagged
+color index magenta default '~D' # Deleted
+color index yellow default '~F' # Flagged
+color index green default '~U' # New
+
+set delete
+unset confirmappend
+set sleep_time=0
+set move=no
+
+set pager_index_lines=10
+set charset="utf-8"
+set send_charset="utf-8"
+set use_from
+set use_domain
+set timeout=100
+unset collapse_unread
+unset beep
+set date_format = "%F %H:%M %z"
+set sort = subject
+set sort_aux = date-received
+set mark_old = no
+set time_inc = 1000
+set index_format = "%4C %Z %D %-20.20F %s"
+unset wait_key
+set mime_forward=yes
+set mime_forward_rest=yes
+set forward_format = "Fwd: %s"
+set pager_stop
+unset markers
+set narrow_tree
+
+alternative_order text/plain text/html
+set include = yes
+
+ignore *
+unignore From: To: Cc: Bcc:
+unignore Subject: Date: Sender:
+unhdr_order *
+hdr_order From From: To: Cc: Bcc: Date: Reply-To: Subject:
+
+set autoedit
+set edit_headers
+
+bind pager k previous-line
+bind pager j next-line
+bind pager \ek half-up
+bind pager \ej half-down
+bind editor <delete> delete-char
+bind pager \e[1~ top
+bind pager G bottom
+bind index "^" imap-fetch-mail
+bind index - collapse-thread
+bind index _ collapse-all
+bind compose K move-up
+bind compose J move-down
+macro compose M "<filter-entry>bm<return>y<edit-type><kill-line>text/html; charset=utf-8<return>" "to markdown"
+
+folder-hook . push "<collapse-all>\n"
+
+auto_view text/html text/enriched application/x-gunzip application/msword
+mime_lookup application/octet-stream
+set mailcap_path=~/.mailcap_mutt
+set query_command = "abook --mutt-query '%s'"

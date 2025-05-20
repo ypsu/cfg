@@ -1,0 +1,7 @@
+#!/bin/bash
+
+/opt/vc/bin/tvservice -o
+read
+/opt/vc/bin/tvservice -p
+fbset -depth 8
+fbset -depth 16

@@ -1,0 +1,10 @@
+#!/bin/bash
+sftppath=$(echo /usr/lib/*ssh/sftp-server)
+cat <<eof
+Port 9022
+PasswordAuthentication no
+PubkeyAuthentication yes
+HostKey $HOME/.ssh/host
+X11Forwarding yes
+Subsystem sftp $sftppath
+eof

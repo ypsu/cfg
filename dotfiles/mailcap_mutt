@@ -1,0 +1,3 @@
+text/html; lynx --assume_charset=utf-8 --display_charset=utf-8 %s ; nametemplate=%s.html
+text/html; lynx -dump --assume_charset=utf-8 --display_charset=utf-8 %s ; nametemplate=%s.html ; copiousoutput
+application/msword; catdoc %s ;

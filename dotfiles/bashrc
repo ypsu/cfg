@@ -1,0 +1,37 @@
+shopt -s checkwinsize
+shopt -s histappend
+
+HISTCONTROL=erasedups
+PS1='\[\e[0m\]$ '
+
+export EDITOR=vim
+export LESS="-S -c --mouse --wheel-lines=3"
+export PATH="$HOME/.bin:$HOME/.cache/gopkgs/bin:/root/.sbin/:$HOME/.local/bin:$PATH"
+export GOPATH="$HOME/.cache/gopkgs"
+export LESSCHARSET='utf-8'
+
+alias ls='ls --color=auto'
+alias ll='ls --color=auto -lh'
+alias lt='ls --color=always -lht | head'
+alias grep='grep --color=auto'
+alias gp='gp -q'
+alias gdb='gdb -q'
+alias vimmail='vim -c ":Mailmode" -c ":set spelllang=hu,en,de"'
+alias vim='vim -X'
+alias links="links -html-text-color 15 -html-link-color 3"
+
+function sshenv {
+  . ~/.bin/sshenv
+}
+
+# cd to the path of the file that is currently opened in vim.
+function cdv {
+  path="$(vimpath)"
+  echo "$path"
+  cd "$(dirname "$path")"
+}
+
+unset command_not_found_handle
+unset HISTFILE
+unset HISTFILESIZE
+unset PROMPT_COMMAND

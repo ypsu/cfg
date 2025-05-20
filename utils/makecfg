@@ -1,0 +1,4 @@
+#!/bin/bash
+cd "$HOME/.d/cfg" 2>/dev/null
+cd "$HOME/d/cfg" 2>/dev/null
+go run ./ybb makecfg

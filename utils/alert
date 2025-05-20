@@ -1,0 +1,10 @@
+#!/bin/bash
+if test "$#" = 0; then
+  echo "usage: alert [alertname] [notes...]"
+  echo "add a todo item into my todo file and highlights the tmux window's title."
+  exit
+fi
+if ! egrep -q "^#$1\b" "$HOME/todo"; then
+  echo "#$@" >>"$HOME/todo"
+fi
+hi alert

@@ -1,0 +1,6 @@
+This is a very small font from[1]. To install for fontconfig, link ~/.fonts to
+this directory and run fc-cache. Then add that directory to the font path via
+xset +fp ~/.fonts. You can load it in the linux console via
+setfont -f ~/.fonts/tom_thumb.psf.gz
+
+[1] http://robey.lag.net/2010/01/23/tiny-monospace-font.html

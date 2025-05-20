@@ -1,0 +1,10 @@
+#!/bin/bash
+# starts the default terminal for me.
+
+if xrandr | grep -qF '2200x1650     40.00*+'; then
+  exec mterm -class mterm "$@"
+elif grep -qF light /tmp/.curtheme; then
+  exec lterm "$@"
+else
+  exec xterm "$@"
+fi

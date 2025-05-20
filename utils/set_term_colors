@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo -en "\e]P0000000"
+echo -en "\e]P1c75646"
+echo -en "\e]P28eb33b"
+echo -en "\e]P3d0b03c"
+echo -en "\e]P472b3cc"
+echo -en "\e]P5c8a0d1"
+echo -en "\e]P6218693"
+echo -en "\e]P7606060"
+echo -en "\e]P8a0a0a0"
+echo -en "\e]P9e09690"
+echo -en "\e]Pacdee69"
+echo -en "\e]Pbffe377"
+echo -en "\e]Pc9cd9f0"
+echo -en "\e]Pdfbb1f9"
+echo -en "\e]Pe77dfd8"
+echo -en "\e]Pff8f8f8"
+
+# Set white as default.
+echo -en '\e[1;37m\e[8]\e[0m'

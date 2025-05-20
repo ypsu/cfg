@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Set xterm title
+
+echo -n -e "\e]0;$@\007"
+if test -n "$TMUX"; then
+	tmux set set-titles on
+	tmux set set-titles-string "$@"
+	tmux set set-titles off
+fi

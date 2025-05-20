@@ -1,0 +1,5 @@
+#!/bin/bash
+
+dev=Master
+test "$(hostname)" = "eper" && dev=PCM
+flock /tmp/.amixerflock amixer -M sset $dev 5%-

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# print the full path of the file that is currently opened in vim.
+
+if ! read cmd id; then
+  echo "No vim found." >&2
+  exit 0
+fi < <(tmux list-panes -F '#{pane_current_command} #{pane_id}' | grep ^vim)
+
+rm -f /tmp/.vimpathsignal
+mkfifo /tmp/.vimpathsignal
+tmux send-keys -t "$id" $'\e:call system("echo " . expand("%:p") . " | tmux load-buffer -; echo >/tmp/.vimpathsignal")\n'
+cat </tmp/.vimpathsignal >/dev/null
+tmux save-buffer -

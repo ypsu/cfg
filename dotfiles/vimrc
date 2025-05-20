@@ -1,0 +1,315 @@
+" ypsu's vimscript
+
+" Various stuff added as time went by.
+" Compilation of single files had a little bit more focus because
+" at some point I was doing some ACM/TopCoder style coding competitions.
+
+" Enable file type detection for smart indentation.
+filetype plugin indent on
+
+set backspace=indent,eol,start
+set cmdheight=2
+set history=50          " keep 50 lines of command line history
+set ignorecase
+set incsearch           " do incremental searching
+set linebreak
+set nobackup
+set nocompatible
+set nohls
+set nowrap
+set nowritebackup
+set number
+set ruler               " show the cursor position all the time
+set showcmd             " display incomplete commands
+set tabpagemax=64
+set secure
+set mouse=a
+set notimeout
+set ttimeout
+set ttimeoutlen=1
+set noswapfile
+set hidden
+set nofsync
+set nojoinspaces
+set virtualedit+=block
+set tw=80
+set t_RV=               " there are some problem with the cursor keys without this
+set t_Co=16
+set notitle
+set nomodeline
+set viminfo=""
+hi endofbuffer ctermfg=none
+
+" colors
+hi SignColumn ctermfg=none ctermbg=0
+hi Visual cterm=inverse ctermfg=11 ctermbg=0
+hi SpellCap ctermfg=none ctermbg=7
+hi SpellBad cterm=inverse ctermfg=14 ctermbg=0
+hi! link Search Visual
+hi! DiffAdd ctermfg=2 ctermbg=none
+hi! DiffDelete ctermfg=1 ctermbg=none
+hi! clear DiffChange
+hi! DiffText ctermfg=3 ctermbg=none
+
+set cursorline
+hi CursorLine cterm=none ctermbg=none
+hi CursorLineNR cterm=inverse ctermfg=gray ctermbg=yellow
+
+" Disable auto-omnicompletion.
+let g:OmniCpp_MayCompleteDot = 0
+let g:OmniCpp_MayCompleteArrow = 0
+
+" Keep window and cursor position when switching buffers
+" Must be after the above commands because vim is buggy.
+if v:version >= 700
+  au BufLeave * if !&diff | let b:winview = winsaveview() | endif
+  au BufEnter * if exists('b:winview') && !&diff | call winrestview(b:winview) | endif
+endif
+
+" disable paren highlighting
+let g:loaded_matchparen = 1
+
+syntax off
+
+" Map <Enter> to : so I don't have to press shift to get to the command line.
+noremap <C-\> <Enter>
+map <Enter> :
+
+let &foldmethod = "marker"
+
+set autoindent
+set copyindent
+set shiftwidth=2
+set softtabstop=2
+set expandtab
+
+set noignorecase
+set nrformats=hex
+
+set completeopt+=longest
+set wildmode=longest,list,full
+set wildmenu
+set wildignore=*.dll,*.o,*.out,*.pyc,*.bak,*.exe,*.jpg,*.jpeg,*.png,*.gif,*.class,*.pdf
+
+" Some C/C++ specific autoindenting options
+let &cinoptions = 'g1,t0,(0'
+" Display tabs to annoy myself
+let &lcs = "trail:·,tab:> "
+set list
+
+" Disable autowrapping and automatic comment beginnings.
+autocmd BufEnter * set formatoptions-=c
+autocmd BufEnter * set formatoptions-=o
+autocmd BufEnter * set formatoptions-=r
+autocmd BufEnter * set formatoptions-=t
+autocmd FileType gitcommit setlocal tw=80
+autocmd FileType go setlocal shiftwidth=2
+autocmd FileType go setlocal tabstop=2
+autocmd FileType go setlocal softtabstop=0
+autocmd FileType go setlocal noexpandtab
+autocmd FileType go setlocal nolist
+
+" Put these in an autocmd group, so that we can delete them easily.
+augroup vimrcEx
+	au!
+
+	" When editing a file, always jump to the last known cursor position.
+	" Don't do it when the position is invalid or when inside an event handler
+	" (happens when dropping a file on gvim).
+	autocmd BufReadPost *
+				\ if line("'\"") > 0 && line("'\"") <= line("$") |
+				\   exe "normal g`\"" |
+
+augroup END
+
+map Q gq
+
+let mapleader = "\\"
+
+map <Up> gk
+map <Down> gj
+map <Home> g0
+map <End> g$
+imap <Up> <C-O>gk
+imap <Down> <C-O>gj
+imap <Home> <C-O>g0
+imap <End> <C-O>g$
+
+" disable modifyOtherKeys mode otherwise some keymappings (like c-backspace)
+" work diffently between tmux and raw xterm.
+let &t_TI = ""
+let &t_TE = ""
+
+" Erasing backwards should be similar to readline
+imap <C-w> <C-\><C-o>dB
+imap <C-h> <C-\><C-o>db
+
+" Quote in mail
+map <Leader>q :s/^/> / <CR>
+
+" Run goimports or just reformat file for C++.
+map <Leader>i :call Format()<CR>
+
+" Move around windows
+map <C-h> <C-w>h
+map <C-j> <C-w>j
+map <C-k> <C-w>k
+map <C-l> <C-w>l
+
+" Home/Forward/Backward/Delete a word in command line editing mode.
+cnoremap <C-a> <Home>
+cnoremap <C-f> <S-Right>
+cnoremap <C-b> <S-Left>
+cnoremap <C-h> <C-w>
+
+" F1 - Edit last file
+map <F1> <C-^>
+imap <F1> <C-o><C-^>
+" <Leader>F1 - Replace the contents with the contents of the clipboard
+map <Leader><F1> ggdG:let @" = system('x2t; tmux save-buffer -')<CR>pkdd
+" <Leader>r - read/replace the contents with the contents of the clipboard
+map <Leader>r ggdG:let @" = system('x2t; tmux save-buffer -')<CR>pkdd
+" F2 - Save
+map <F2> :update <CR>
+vmap <F2> <Esc><F2>gv
+" <Leader>F2 - Copy the whole buffer to the clipboard
+map <Leader><F2> ggyG``zz:call system('cat \| tmux load-buffer -; t2x', @")<CR>
+" <Leader>w - write the whole buffer to the clipboard
+map <Leader>w ggyG``zz:call system('cat \| tmux load-buffer -; t2x', @")<CR>
+" Leader-F3 - Reload all
+map <Leader><F3> :bufdo set eventignore= \| e <CR>
+" F4, \a - Show terminal
+map <F4> :!exit <CR>
+vmap <F4> <Esc><F4>gv
+map <Leader>a :!exit <CR>
+vmap <Leader>a <Esc><F4>gv
+
+" Paste from X11 clipboard/tmux buffer.
+map <Leader>p :let @" = system('x2t; tmux save-buffer -')<CR>p
+map <Leader>P :let @" = system('x2t; tmux save-buffer -')<CR>P
+" Yank to tmux buffer/X11 clipboard.
+map <Leader>y y:call system('cat \| tmux load-buffer -; t2x', @")<CR>
+map <Leader>Y yy:call system('cat \| tmux load-buffer -; t2x', @")<CR>
+" Copy current filename to clipboard.
+map <Leader><C-g> :call system('echo ' . expand('%') . ' \| tmux load-buffer -; t2x')<CR><C-g>
+
+" Toggle syntax highlight
+map <F12> :call ToggleSyntaxHighlight()<CR>
+
+" <Leader>l : turn on displaying red background after column &textwidth
+" This is enabled by default.
+nnoremap <silent> <Leader>l :call ToggleLongLineMatch()<CR>
+
+" Leader-d: diff changes
+map <Leader>d :!git diff<CR>
+
+map <Leader>f :<C-U>call SelectFile()<CR>
+map <Leader>F :<C-U>call SelectFileFromCurrent()<CR>
+map <Leader>g :<C-U>call SelectBuffer()<CR>
+map <Leader>h :Hexmode<CR>
+map <Leader>k :<C-u>call SaveCount()<CR>"zyiw:call RemoteMan(@z)<CR>
+map <Leader>o :<C-U>call OpenFromXClipboard()<CR>
+map <Leader>O :<C-U>call OpenFromTmuxClipboard()<CR>
+
+" Signs manipulation
+nmap <Leader>z :call SignFixme()<CR>
+nmap <Leader>x :call UnSignFixme()<CR>
+
+let NERDCreateDefaultMappings=0
+map <Leader>c <plug>NERDCommenterComment
+map <Leader>u <plug>NERDCommenterUncomment
+
+" Keys for standalone C programs.
+" F5 - run
+" <Leader>F5 - run in gdb (must be built via F6) and print backtrace (assuming crash)
+" F6 - debug build
+" <Leader>F6 - analyze + opt build
+" F7 - set a permanent breakpoint and run in the debugger
+" F8 - run via valgrind
+" <Leader>F8 - check the code's coverage
+" \1, \2, \3 - build, run, debug
+function SetCCommands()
+	map <F5> :!./a.out <CR>
+	map <Leader><F5> :call writefile(["r", "bt"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
+	map <F6> :!gcc -fstack-protector-all -std=c99 -lm -Wall -W -g3 '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader><F6> :!clang -std=c99 -fsyntax-only -Weverything '%:p' && clang --std=c99 --analyze --analyzer-output text -o /dev/null '%:p' && gcc -std=c99 -Wall -Wextra -g3 -DATHOME -lm '%:p' -lgmp -lpthread -lrt <CR>
+	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
+	map <F8> :!valgrind ./a.out <CR>
+	map <Leader><F8> :!gcc -std=c99 -g -fprofile-arcs -ftest-coverage '%:p' -lm -lpthread -lrt; ./a.out; gcov -a -b -c '%:p'; vim '%:p.gcov'; rm %:p:r.{gcda,gcno} *.gcov; rm a.out <CR>
+
+	map <Leader>1 :!gcc -fstack-protector-all -std=c99 -lm -Wall -W -g3 '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader>2 :!./a.out <CR>
+	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
+endfunction
+
+" Keys for standalone C++ programs.
+" F5 - run
+" <Leader>F5 - run in gdb (must be built via F6) and print backtrace (assuming crash)
+" F6 - debug build
+" <Leader>F6 - opt build
+" F7 - set a permanent breakpoint and run in the debugger
+" F8 - run via valgrind
+" <Leader>F8 - check the code's coverage
+" 
+" :LT - load my CPP template
+" \1, \2, \3 - build, run, debug
+function SetCPPCommands()
+	map <F5> :!./a.out <CR>
+	map <Leader><F5> :call writefile(["r", "bt"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
+	map <F6> :!g++ -std=c++23 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader><F6> :!clang++ -std=c++23 -fsyntax-only -Weverything '%:p' && clang++ -std=c++23 --analyze --analyzer-output text -o /dev/null '%:p' && g++ -std=c++23 -Wall -Wextra -O2 -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
+	map <F8> :!valgrind ./a.out <CR>
+	map <Leader><F8> :!g++ -std=c++23 -fprofile-arcs -ftest-coverage '%:p'; ./a.out; gcov -a -b -c '%:p'; vim '%:p.gcov'; rm %:p:r.{gcda,gcno} *.gcov; rm a.out <CR>
+
+	com! LT 1,$d | r ~/.template.cpp | 1d | 33
+	map <Leader>1 :!g++ -std=c++23 -fstack-protector-all -Wall -Wextra -Wno-psabi -g3 -D_GLIBCXX_DEBUG -DATHOME '%:p' -lgmp -lpthread -lrt <CR>
+	map <Leader>2 :!./a.out <CR>
+	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist ./a.out; rm gdb-tmp-cmdlist <CR>
+endfunction
+
+" Keys for standalone Go programs.
+" F5 - run
+" F6 - check syntax
+" F7 - build, set a permanent breakpoint and run in the debugger
+" \1, \2, \3 - compile-check, run, debug
+" :LT - load my Go template
+function SetGoCommands()
+	map <F5> :!go run '%:p:r' <CR>
+	map <F6> :!go build -o /dev/null '%:p' <CR>
+	map <F7> :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
+
+	com! LT 1,$d | r ~/.template.go | 1d | 12
+	map <Leader>1 :!go build -o /dev/null '%:p' <CR>
+	map <Leader>2 :!go run '%:p' <CR>
+	map <Leader>3 :call writefile(["break " . expand("%:p") . ':' . line("."), "r"], "gdb-tmp-cmdlist") \| !gdb -q -x gdb-tmp-cmdlist '%:p:r'; rm gdb-tmp-cmdlist <CR>
+endfunction
+
+" Keys for standalone typescript config file.
+function SetTSConfigCommands()
+	com! LT 1,$d | r ~/.template.tsconfig.json | 1d | 12
+endfunction
+
+" Set my beloved keys.
+autocmd BufEnter *.c call SetCCommands()
+autocmd BufEnter *.h,*.H,*.hxx,*.hpp,*.C,*.cpp,*.cxx,*.cc,*.cs call SetCPPCommands()
+autocmd BufEnter *.go call SetGoCommands()
+autocmd BufEnter tsconfig.json call SetTSConfigCommands()
+
+" Moving back and forth between lines of same or lower indentation.
+nnoremap <silent> [l :call NextIndent(0, 0, 0, 1)<CR>
+nnoremap <silent> ]l :call NextIndent(0, 1, 0, 1)<CR>
+nnoremap <silent> [L :call NextIndent(0, 0, 1, 1)<CR>
+nnoremap <silent> ]L :call NextIndent(0, 1, 1, 1)<CR>
+vnoremap <silent> [l <Esc>:call NextIndent(0, 0, 0, 1)<CR>m'gv''
+vnoremap <silent> ]l <Esc>:call NextIndent(0, 1, 0, 1)<CR>m'gv''
+vnoremap <silent> [L <Esc>:call NextIndent(0, 0, 1, 1)<CR>m'gv''
+vnoremap <silent> ]L <Esc>:call NextIndent(0, 1, 1, 1)<CR>m'gv''
+onoremap <silent> [l :call NextIndent(0, 0, 0, 1)<CR>
+onoremap <silent> ]l :call NextIndent(0, 1, 0, 1)<CR>
+onoremap <silent> [L :call NextIndent(1, 0, 1, 1)<CR>
+onoremap <silent> ]L :call NextIndent(1, 1, 1, 1)<CR>
+
+" disable this silly plugin.
+let g:loaded_netrw       = 1
+let g:loaded_netrwPlugin = 1

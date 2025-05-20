@@ -1,0 +1,22 @@
+#!/bin/bash
+function _get_ssh_env() {
+	local pts=$(tmux display-message -p '#{client_tty}' | sed s:/dev/::)
+	local pid=$(pgrep -t "$pts" tmux)
+	if test "$pid" = ""; then
+		exit 1
+	fi
+	local env=/proc/$pid/environ
+
+	function get_env() {
+		value=$(tr '\0' '\n' <$env | grep "^$1=" | awk -F= '{print $2}')
+		eval "export '$1=$value'"
+	}
+
+	get_env DISPLAY
+	get_env SSH_CLIENT
+	get_env SSH_AUTH_SOCK
+	get_env SSH_CONNECTION
+	get_env SSH_TTY
+}
+
+_get_ssh_env

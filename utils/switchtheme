@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if test "$(cat /tmp/.curtheme)" = "light"; then
+  echo dark >/tmp/.curtheme
+  timeout 1s xsettingsd -c <(echo 'Net/ThemeName "Adwaita-dark"')
+else
+  echo light >/tmp/.curtheme
+  timeout 1s xsettingsd -c <(echo 'Net/ThemeName "Adwaita"')
+fi

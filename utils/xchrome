@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Make some checks if the internet is reachable.
+if wget -qO- https://iio.ie | grep -q random.ideas; then
+  # Verify that chrome still has the no-autocompletion feature.
+  url=https://chromium.googlesource.com/chromium/src/+/main/components/omnibox/browser/omnibox_field_trial.cc?format=TEXT
+  pattern=UIMaxAutocompleteMatchesByProvider
+  if ! curl $url 2>/dev/null | base64 -d | grep $pattern >/dev/null; then
+    # if this triggers then maybe talk to the chrome folks?
+    echo "xchrome-fail" >/tmp/.sysstatmsg
+  fi
+fi
+
+# Start chrome with no autocompletion in its omnibox.
+google-chrome \
+  --enable-features="OmniboxUIExperimentMaxAutocompleteMatches:UIMaxAutocompleteMatches/1/UIMaxAutocompleteMatchesByProvider/*%3A0" \
+  --disable-features="UrlScoringModel" \
+  --force-prefers-reduced-motion \
+  "$@"

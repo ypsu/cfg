@@ -1,0 +1,2 @@
+#!/bin/bash
+ssh desk SSH_AUTH_SOCK=\$HOME/.cache/agent-tty firefox -P ipi

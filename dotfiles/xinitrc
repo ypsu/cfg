@@ -1,0 +1,3 @@
+#!/bin/bash
+rx
+exec i3

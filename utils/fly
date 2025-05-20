@@ -1,0 +1,5 @@
+#!/bin/bash
+export FLYCTL_INSTALL="$HOME/.fly"
+"$FLYCTL_INSTALL/bin/fly" "$@"
+# work around the annoying lack of newline in help.
+echo

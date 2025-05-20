@@ -1,0 +1,12 @@
+#!/bin/bash
+
+rm -f tom_thumb.p?f.gz
+bdftopcf -o tom_thumb.pcf tom_thumb.bdf
+bdf2psf \
+	--fb tom_thumb.bdf \
+	/usr/share/bdf2psf/standard.equivalents \
+	/usr/share/bdf2psf/ascii.set+/usr/share/bdf2psf/useful.set \
+	256 \
+	tom_thumb.psf
+gzip tom_thumb.pcf
+gzip tom_thumb.psf

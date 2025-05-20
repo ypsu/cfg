@@ -1,0 +1,3 @@
+#!/bin/bash
+
+setname "#[fg=black,bg=yellow]$@"

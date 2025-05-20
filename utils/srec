@@ -1,0 +1,14 @@
+#!/bin/bash
+# srec: screen recorder.
+
+if test "$1" = "-k"; then
+  pid="$(pgrep -f ffmpeg.*x11grab)"
+  if test -n "$pid"; then
+    /usr/bin/kill --verbose --timeout 10000 TERM "$pid"
+  fi
+  exit
+fi
+
+resolution="$(xrandr | fgrep \* | awk '{print $1}')"
+fname="$(date -u +%F.%H%M)s.mkv"
+ffmpeg -f x11grab -video_size "$resolution" -framerate 0.25 -i :0 -vcodec libx264 -preset ultrafast -qp 0 -pix_fmt yuv444p "$fname"

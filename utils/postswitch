@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Add something like this
+# ACTION=="add", SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}=="?*", RUN+="/home/rlblaster/.bin/postswitch"
+# to /etc/udev/rules.d/99-local.rules
+
+cd $(dirname $0)/..
+nohup >/dev/null 2>/dev/null bash -c '
+sleep 1
+home=$(pwd)
+xorgcmd="$(pgrep -a Xorg)"
+export DISPLAY="$(echo "$xorgcmd" | sed -En "s/.*(:.).*/\1/p;q")"
+export XAUTHORITY=$home/.Xauthority
+xset r rate 300 40
+xmodmap $home/.xmodmap
+' &

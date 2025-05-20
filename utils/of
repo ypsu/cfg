@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Open file in this window's vim.
+
+if (($# == 0)); then
+	echo "$0 [file...]"
+	exit
+fi
+
+if ! read cmd id; then
+	echo "No vim found." >&2
+	exit 0
+fi < <(tmux list-panes -F '#{pane_current_command} #{pane_id}' | grep ^vim)
+
+for f in "$@"; do
+	fullname=$(readlink -f "$f")
+	if test "$fullname" != ""; then
+		tmux load-buffer - <<< "$fullname"
+		tmux send-keys -t $id "\O"
+		sleep 0.2
+	fi
+done

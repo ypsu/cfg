@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Set tmux window title
+
+echo -n -e "\ek$@\e\\"

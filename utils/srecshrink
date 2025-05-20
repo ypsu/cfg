@@ -1,0 +1,14 @@
+#!/bin/bash
+# compress my recordings.
+cd "$HOME/rec"
+for f in *s.mkv; do
+  if fuser -s $f 2>/dev/null; then
+    echo "$f might be still being recorded, skipping."
+    continue
+  fi
+  h="${f%s.mkv}.mkv"
+  echo -e "\e[32mgenerating $h\e[0m"
+  if ! test -f "$h"; then
+    ffmpeg -i $f -r 30 -filter:v "setpts=PTS/120" $h
+  fi
+done

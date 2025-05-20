@@ -1,0 +1,108 @@
+! compile with this command: xrdb -nocpp .Xdefaults
+
+*alwaysUseMods: true
+*bellIsUrgent: true
+*cdXtraScroll: true
+*cursorColor: #009900
+*cutNewline: false
+*allowBoldFonts: false
+*allowColorOps: true
+*decTerminalID: 102
+*eightBitInput: false
+*fastScroll: true
+*VT100.font: -xos4-terminus-medium-r-normal--12-120-72-72-c-60-iso10646-1
+*VT100.font1: -raccoon-fixed4x6-medium-r-normal--6-60-75-75-p-40-iso10646-1
+*VT100.font2: -xos4-terminus-bold-r-normal--16-160-72-72-c-80-iso10646-1
+*VT100.font3: -xos4-terminus-bold-r-normal--20-200-72-72-c-100-iso10646-1
+*VT100.font4: -xos4-terminus-bold-r-normal--24-240-72-72-c-120-iso10646-1
+*VT100.font5: -xos4-terminus-bold-r-normal--28-280-72-72-c-140-iso10646-1
+*VT100.font6: -xos4-terminus-bold-r-normal--32-320-72-72-c-160-iso10646-1
+*VT100.font7: -xos4-terminus-bold-r-normal--32-320-72-72-c-160-iso10646-1
+*highlightSelection: true
+*jumpScroll: true
+*keyboardType: tcap
+*maxBufSize: 65536
+*minBufSize: 65536
+*multiScroll: true
+*openIm: false
+*pointerMode: 2
+*pointerShape: left_ptr
+*ptyInitialErase: true
+*saveLines: 10000
+*scrollKey: true
+*scrollTtyOutput: false
+*selectToClipboard: true
+*showBlinkAsBold: true
+*showMissingGlyphs: true
+*utf8Title: true
+*termName: xterm-color
+*VT100.translations:      #override \n\
+        Ctrl<Key>BackSpace: string(0x08) \n\
+        Alt<Key>BackSpace: string(0x1b) string(0x7f) \n\
+        <Key>BackSpace: string(0x7f) \n\
+        Ctrl Alt<Key>Prior: larger-vt-font() \n\
+        Ctrl Alt<Key>Next: smaller-vt-font() \n\
+        Ctrl<Key>6: string(0x1e) \n\
+        Alt<Key>Return: string(0x1b) string(0x0d) \n\
+        Shift<Key>Return: string(0x0d) \n\
+        Ctrl<Key>Return: string(0x0d) \n
+
+! dark is the default colorscheme for my xterm.
+XTerm*background: #000000
+XTerm*foreground: #f8f8f8
+XTerm*color0: #000000
+XTerm*color1: #c75646
+XTerm*color2: #5e832b
+XTerm*color3: #d0b03c
+XTerm*color4: #72b3cc
+XTerm*color5: #c8a0d1
+XTerm*color6: #218693
+XTerm*color7: #606060
+XTerm*color8: #a0a0a0
+XTerm*color9: #e09690
+XTerm*color10: #cdee69
+XTerm*color11: #ffe377
+XTerm*color12: #9cd9f0
+XTerm*color13: #fbb1f9
+XTerm*color14: #77dfd8
+XTerm*color15: #f8f8f8
+
+! light color scheme for xterm.
+lterm*foreground: #000000
+lterm*background: #ffffff
+lterm*color0: #000000
+lterm*color1: #a00000
+lterm*color2: #009000
+lterm*color3: #909000
+lterm*color4: #0000a0
+lterm*color5: #900090
+lterm*color6: #009090
+lterm*color7: #a0a0a0
+lterm*color8: #909090
+lterm*color9: #ff0000
+lterm*color10: #00c000
+lterm*color11: #c0c000
+lterm*color12: #0000ff
+lterm*color13: #ff00ff
+lterm*color14: #00c0c0
+lterm*color15: #ffffff
+
+! monochrome (black and white) xterm.
+mterm*foreground: #000000
+mterm*background: #ffffff
+mterm*color0: #000000
+mterm*color1: #000000
+mterm*color2: #000000
+mterm*color3: #000000
+mterm*color4: #000000
+mterm*color5: #000000
+mterm*color6: #000000
+mterm*color7: #e0e0e0
+mterm*color8: #000000
+mterm*color9: #000000
+mterm*color10: #000000
+mterm*color11: #000000
+mterm*color12: #000000
+mterm*color13: #000000
+mterm*color14: #000000
+mterm*color15: #ffffff

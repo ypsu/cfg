@@ -1,0 +1,37 @@
+#!/bin/bash
+
+mkdir -p /tmp/a
+if ! ps auxw | grep -v grep | grep -q 'sysstat\>'; then
+  delay=5000
+  audio=Master
+  network=eno1
+  if test "$(hostname)" = "eper" || test "$(hostname)" = "ipi"; then
+    network=eth0
+    audio=none
+    delay=10000
+  fi
+  if test "$(hostname)" = "ipi"; then
+    network=end0
+  fi
+  sysstat -a $audio -d $delay -n $network
+fi
+set_term_colors
+test "$HOSTNAME" = kezport && /usr/sbin/sshd -f ~/.sshd_config
+
+if tmux has-session 2>/dev/null; then
+  tmux attach
+  exit
+fi
+
+if test "$hostname" = eper; then
+  alert startupalert "start gdsnap and my server"
+fi
+
+tmux new-session -d
+tmux rename-window "____"
+settitle xterm
+for i in {2..6}; do
+  tmux new-window -n ____
+done
+tmux select-window -t 1
+tmux attach

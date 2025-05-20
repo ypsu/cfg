@@ -1,0 +1,51 @@
+#!/bin/bash
+
+echo '   q  Cancel'
+echo '   r  Read X11 clipboard to tmux buffer'
+echo '   y  Yank tmux buffer to X11 clipboard'
+echo '   d  tmux Detach others'
+echo '   n  tmux reName window'
+echo '   g  Pari/GP'
+echo '   `  rcmd_cancel'
+echo '1..4  rcmd_run <num>'
+
+read -n 1 choice
+case "$choice" in
+	r)
+		tmux last-pane
+		clear
+		echo Copying from X11...
+		x2t
+		;;
+	y)
+		tmux last-pane
+		clear
+		echo Copying to X11...
+		t2x
+		;;
+	d)
+		tmux list-clients -F '#{client_activity} #{client_tty}' | \
+			sort -rn | while read date pts
+		do
+			if test "$first_skipped" != 1; then
+				first_skipped=1
+			else
+				tmux detach -t "$pts"
+			fi
+		done
+		;;
+	n)
+		clear
+		read -p "Enter the new name: " name
+		if test "$name" = ""; then
+			name=____
+		fi
+		tmux rename-window "$name"
+		;;
+	\`)
+		rcmd_cancel
+		;;
+	1|2|3|4)
+		rcmd_run "$choice"
+		;;
+esac
