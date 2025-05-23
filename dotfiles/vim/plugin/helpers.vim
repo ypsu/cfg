@@ -210,18 +210,20 @@ endfunction
 
 function! Format()
   let override = FilterOverride()
+  let l:ext = expand("%:e")
+  let l:tail = expand("%:t")
   if override != ''
     let filter = override
   elseif &filetype == 'c' || &filetype == 'cpp'
-    let filter = 'clang-format --assume-filename=' . expand("%:t")
+    let filter = 'clang-format --assume-filename=' . l:tail
   elseif &filetype == 'go'
     let filter = 'goimports'
   elseif &filetype == 'javascript' || &filetype == 'typescript' || &filetype == 'json' || &filetype == 'yaml' || &filetype == 'css'
-    let filter = 'prettier --print-width=160 --no-semi --stdin-filepath=' . expand("%:t")
+    let filter = 'prettier --print-width=160 --no-semi --stdin-filepath=' . l:tail
   elseif &filetype == 'rust'
     let filter = 'rustfmt'
   else
-    echo "no formatter for " . &filetype
+    echo "no formatter for " . l:ext
     return
   endif
   call RecreateTmpdir()
