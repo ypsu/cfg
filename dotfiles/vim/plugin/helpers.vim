@@ -202,8 +202,17 @@ function! NextIndent(exclusive, fwd, lowerlevel, skipblanks)
   endwhile
 endfunction
 
+" FilterOverride returns machine specific override if one is defined.
+" This way they don't have to be added to Format() and cause version conflicts.
+function! FilterOverride()
+  return ''
+endfunction
+
 function! Format()
-  if &filetype == 'c' || &filetype == 'cpp'
+  let override = FilterOverride()
+  if override != ''
+    let filter = override
+  elseif &filetype == 'c' || &filetype == 'cpp'
     let filter = 'clang-format --assume-filename=' . expand("%:t")
   elseif &filetype == 'go'
     let filter = 'goimports'
