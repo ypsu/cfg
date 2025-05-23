@@ -103,11 +103,11 @@ autocmd BufEnter * set formatoptions-=o
 autocmd BufEnter * set formatoptions-=r
 autocmd BufEnter * set formatoptions-=t
 autocmd FileType gitcommit setlocal tw=80
-autocmd FileType go setlocal shiftwidth=2
-autocmd FileType go setlocal tabstop=2
-autocmd FileType go setlocal softtabstop=0
-autocmd FileType go setlocal noexpandtab
-autocmd FileType go setlocal nolist
+autocmd FileType go,odin setlocal shiftwidth=2
+autocmd FileType go,odin setlocal tabstop=2
+autocmd FileType go,odin setlocal softtabstop=0
+autocmd FileType go,odin setlocal noexpandtab
+autocmd FileType go,odin setlocal nolist
 
 " Put these in an autocmd group, so that we can delete them easily.
 augroup vimrcEx

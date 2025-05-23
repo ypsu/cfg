@@ -220,6 +220,8 @@ function! Format()
     let filter = 'goimports'
   elseif &filetype == 'javascript' || &filetype == 'typescript' || &filetype == 'json' || &filetype == 'yaml' || &filetype == 'css'
     let filter = 'prettier --print-width=160 --no-semi --stdin-filepath=' . l:tail
+  elseif &filetype == 'odin'
+    let filter = 'odinfmt -stdin'
   elseif &filetype == 'rust'
     let filter = 'rustfmt'
   else
