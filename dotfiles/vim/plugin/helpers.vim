@@ -239,6 +239,9 @@ function! Format()
     endfor
     return
   endif
+  if &filetype == 'odin'
+    call system("sed -zi 's/\\n\\n$/\\n/' /tmp/.vimfmtnew")
+  endif
   let newlines = readfile("/tmp/.vimfmtnew")
   if newlines == oldlines
     return
