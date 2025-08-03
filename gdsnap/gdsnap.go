@@ -112,17 +112,30 @@ global flags:`)
 }
 
 var (
-	cycledurFlag     = flag.Duration("cycledur", 20*time.Minute, "the time to wait between backup cycles. relevant only for the watch subcommand.")
-	dirFlag          = flag.String("dir", os.Getenv("PWD"), "the root directory under which to operate recursively.")
-	gdirFlag         = flag.String("gdir", "", "the gdrive directory under which to to save the files.")
-	ignoreFlag       = flag.String("ignore", "", "comma separated list of globs that save/watch ignores to upload.")
-	sizelimitmbFlag  = flag.Int("sizelimitmb", 20, "size limit of the maximum file in megabytes. make sure to pick a limit that comfortably fits into memory.")
-	passwordFlag     = flag.String("password", "", "the password to encrypt the files with. if empty, the files are encrypted with an empty password.")
-	profileFlag      = flag.String("profile", hostname(), "flag defaults selector for the gdsnap config files.")
-	refreshtokenFlag = flag.String("refreshtoken", "", "the oauth2 refresh token needed for accessing gdrive. generate one with the auth subcommand.")
-	tFlag            = flag.String("t", "", "time offset for cat/diff/restore operations. either a duration from now or an absolute utc time value. default is the head revision for each file.")
-	warncmdFlag      = flag.String("warncmd", "", "run command on warning-level events. the command should notify you about the event. static flags can be specified, separate them with space.")
+	cycledurFlag     *time.Duration
+	dirFlag          *string
+	gdirFlag         *string
+	ignoreFlag       *string
+	sizelimitmbFlag  *int
+	passwordFlag     *string
+	profileFlag      *string
+	refreshtokenFlag *string
+	tFlag            *string
+	warncmdFlag      *string
 )
+
+func initflags() {
+	cycledurFlag = flag.Duration("cycledur", 20*time.Minute, "the time to wait between backup cycles. relevant only for the watch subcommand.")
+	dirFlag = flag.String("dir", os.Getenv("PWD"), "the root directory under which to operate recursively.")
+	gdirFlag = flag.String("gdir", "", "the gdrive directory under which to to save the files.")
+	ignoreFlag = flag.String("ignore", "", "comma separated list of globs that save/watch ignores to upload.")
+	sizelimitmbFlag = flag.Int("sizelimitmb", 20, "size limit of the maximum file in megabytes. make sure to pick a limit that comfortably fits into memory.")
+	passwordFlag = flag.String("password", "", "the password to encrypt the files with. if empty, the files are encrypted with an empty password.")
+	profileFlag = flag.String("profile", hostname(), "flag defaults selector for the gdsnap config files.")
+	refreshtokenFlag = flag.String("refreshtoken", "", "the oauth2 refresh token needed for accessing gdrive. generate one with the auth subcommand.")
+	tFlag = flag.String("t", "", "time offset for cat/diff/restore operations. either a duration from now or an absolute utc time value. default is the head revision for each file.")
+	warncmdFlag = flag.String("warncmd", "", "run command on warning-level events. the command should notify you about the event. static flags can be specified, separate them with space.")
+}
 
 const (
 	oaClientID = "1076973936178-12a8rasuan6erslop5nkqe088cce31p8.apps.googleusercontent.com"
@@ -1230,6 +1243,7 @@ func readconfig() {
 }
 
 func Run(ctx context.Context) error {
+	initflags()
 	go func() {
 		sigquitch := make(chan os.Signal, 1)
 		signal.Notify(sigquitch, syscall.SIGQUIT)
