@@ -30,8 +30,8 @@ func run(ctx context.Context) error {
 		{todotool.Run, "todo: Print my active task queue."},
 	}
 
-	toolname := os.Args[0]
-	if strings.HasSuffix(toolname, "/ybb") && len(os.Args) >= 2 {
+	toolname := filepath.Base(os.Args[0])
+	if toolname == "ybb" && len(os.Args) >= 2 {
 		os.Args = os.Args[1:]
 		toolname = filepath.Base(os.Args[0])
 	}
