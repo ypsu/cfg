@@ -338,7 +338,7 @@ func Run(ctx context.Context) error {
 				eventzch <- ""
 				return nil
 			}
-			eventzch <- fmt.Sprintf("blog.Eventz:\n  %s\n", html.UnescapeString(strings.Join(lines[1:len(lines)-1], "\n  ")))
+			eventzch <- fmt.Sprintf("blog.Eventz:\n  %s\n\n", html.UnescapeString(strings.Join(lines[1:len(lines)-1], "\n  ")))
 			return nil
 		}()
 		if err != nil {
