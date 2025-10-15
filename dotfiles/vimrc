@@ -38,6 +38,7 @@ set t_Co=16
 set notitle
 set nomodeline
 set viminfo=""
+set belloff=all
 hi endofbuffer ctermfg=none
 
 " colors
