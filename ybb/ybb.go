@@ -11,8 +11,10 @@ import (
 	"syscall"
 
 	"github.com/ypsu/cfg/gdsnap"
+	"github.com/ypsu/cfg/huepush"
 	"github.com/ypsu/cfg/makecfg"
 	"github.com/ypsu/cfg/pedit"
+	"github.com/ypsu/cfg/ssw"
 	"github.com/ypsu/cfg/todotool"
 	"github.com/ypsu/cfg/toollist"
 
@@ -25,8 +27,10 @@ var ybbsrc string
 func run(ctx context.Context) error {
 	toollist.Tools = []toollist.Tool{
 		{gdsnap.Run, "gdsnap: Google Drive SNAPshotter, manages backups."},
+		{huepush.Run, "huepush: pushes my intent to the hue switches."},
 		{makecfg.Run, "makecfg: Sets up ~/.bin and other stuff."},
 		{pedit.Run, "pedit: Edit a password protected file."},
+		{ssw.Run, "ssw: Simple SWitch sets lamp and monitor brightness."},
 		{todotool.Run, "todo: Print my active task queue."},
 	}
 
