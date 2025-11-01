@@ -5,6 +5,7 @@
 //
 // works from ~/.flashcard. that file has the following structure:
 //
+//   # arbitrary comments with #.
 //   def identifier1 question1~ answer1
 //   def identifier2 question2~ answer2
 //   def ...
@@ -111,6 +112,7 @@ int main(void) {
   // defparsing: parse the def statements. but first, add the default card.
   card[cards++].id = strdup("default");
   while (fgets(line, 1000, f) != NULL && line[0] != '\n') {
+    if (line[0] == '#') continue;
     if (strncmp(line, "def ", 4) != 0) {
       printf("error, line does not start with def: %s", line);
       exit(1);
