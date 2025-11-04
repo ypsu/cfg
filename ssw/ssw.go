@@ -1,19 +1,23 @@
 // The tool ssw (Simple SWitch) sets hue and monitor brightness.
 //
 // Usage: ssw [abdhot0123]
-// Default: o0
+// Example: ssw o0b2
+//
+// Prints current light levels if given no arguments.
 package ssw
 
 import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -43,6 +47,31 @@ func usage() {
 	flag.PrintDefaults()
 }
 
+// bridgeAddress reads local configuration.
+func bridgeAddress() (address, key string, err error) {
+	var hueAddress, hueKey string
+	cfgfile := filepath.Join(os.Getenv("HOME"), ".config/hue.cfg")
+	cfgBytes, err := os.ReadFile(cfgfile)
+	if err != nil {
+		return "", "", fmt.Errorf("huepush.ReadLocalConfiguration: %v", err)
+	}
+	for line := range bytes.Lines(cfgBytes) {
+		fields := strings.Fields(string(line))
+		if len(fields) <= 1 {
+			continue
+		}
+		if fields[0] == "hueaddress" {
+			hueAddress = fields[1]
+		} else if fields[0] == "huekey" {
+			hueKey = fields[1]
+		}
+	}
+	if hueAddress == "" || hueKey == "" {
+		return "", "", fmt.Errorf("ssw.MissingBridgeData (either hueaddress or huekey is missing from $HOME/.config/hue.cfg)")
+	}
+	return hueAddress, hueKey, nil
+}
+
 func setDDCBrightness(brightness int) error {
 	fd, err := os.OpenFile("/dev/i2c-12", os.O_RDWR, 0)
 	if err != nil {
@@ -70,76 +99,46 @@ func setDDCBrightness(brightness int) error {
 	return nil
 }
 
-func Run(ctx context.Context) error {
-	// Parse arguments.
-	targetLamp, targetLevel := "o", 0
-	flag.Usage = usage
-	flag.Parse()
-	for _, arg := range flag.Args() {
-		for _, c := range arg {
-			if '0' <= c && c <= '9' {
-				targetLevel = int(c - '0')
-			} else {
-				targetLamp = string(c)
-			}
-		}
-	}
-	if targetLevel > 3 {
-		return fmt.Errorf("ssw.TargetTooHigh got=%d max=%d", targetLevel, 3)
+func setBrightness(ctx context.Context, lamp byte, level int) error {
+	if level > 3 {
+		return fmt.Errorf("ssw.TargetTooHigh got=%d max=%d", level, 3)
 	}
 
 	// d means Display.
-	if targetLamp == "d" {
+	if lamp == 'd' {
 		levels := [...]int{0, 25, 75, 100}
-		if err := setDDCBrightness(levels[targetLevel]); err != nil {
+		if err := setDDCBrightness(levels[level]); err != nil {
 			return fmt.Errorf("ssw.SetBrightness: %v", err)
 		}
 		return nil
 	}
 
-	// Read local configuration.
-	var hueAddress, hueKey string
-	cfgfile := filepath.Join(os.Getenv("HOME"), ".config/hue.cfg")
-	cfgBytes, err := os.ReadFile(cfgfile)
+	hueAddress, hueKey, err := bridgeAddress()
 	if err != nil {
-		return fmt.Errorf("huepush.ReadLocalConfiguration: %v", err)
-	}
-	for line := range bytes.Lines(cfgBytes) {
-		fields := strings.Fields(string(line))
-		if len(fields) <= 1 {
-			continue
-		}
-		if fields[0] == "hueaddress" {
-			hueAddress = fields[1]
-		} else if fields[0] == "huekey" {
-			hueKey = fields[1]
-		}
-	}
-	if hueAddress == "" || hueKey == "" {
-		return fmt.Errorf("ssw.MissingBridgeData (either hueaddress or huekey is missing from $HOME/.config/hue.cfg)")
+		return fmt.Errorf("ssw.BridgeAddressForBrightness: %v", err)
 	}
 
 	// Find the matching target.
 	target := ""
 	for line := range strings.Lines(data) {
 		fields := strings.Fields(line)
-		if len(fields) <= 2 || fields[0] != targetLamp {
+		if len(fields) <= 2 || fields[0][0] != lamp {
 			continue
 		}
-		if targetLevel >= len(fields)-1 {
-			return fmt.Errorf("ssw.TargetHigherThanScenes got=%d max=%d", targetLevel, len(fields)-2)
+		if level >= len(fields)-1 {
+			return fmt.Errorf("ssw.TargetHigherThanScenes got=%d max=%d", level, len(fields)-2)
 		}
-		target = fields[targetLevel+1]
+		target = fields[level+1]
 		break
 	}
 	if target == "" {
-		return fmt.Errorf("ssw.TargetNotFound target=%s", targetLamp)
+		return fmt.Errorf("ssw.TargetNotFound target=%c", lamp)
 	}
 
 	// Craft and send the request.
 	client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	resource, body := "/scene/", bytes.NewReader([]byte(`{"recall":{"action": "active"}}`))
-	if targetLevel == 0 {
+	if level == 0 {
 		resource, body = "/grouped_light/", bytes.NewReader([]byte(`{"on": {"on": false}}`))
 	}
 	setRequest, err := http.NewRequestWithContext(ctx, "PUT", hueAddress+"/clip/v2/resource"+resource+target, body)
@@ -159,6 +158,96 @@ func Run(ctx context.Context) error {
 	setResponse.Body.Close()
 	if setResponse.StatusCode != 200 {
 		return fmt.Errorf("ssw.Set status=%q body:\n%s", setResponse.Status, setBody)
+	}
+	return nil
+}
+
+func jget(v any, path ...string) any {
+	if len(path) == 0 {
+		return v
+	}
+	if v == nil {
+		return nil
+	}
+	if idx, err := strconv.Atoi(path[0]); err == nil { // on success
+		return jget(v.([]any)[idx], path[1:]...)
+	}
+	return jget(v.(map[string]any)[path[0]], path[1:]...)
+}
+
+func printBrightness(ctx context.Context) error {
+	hueAddress, hueKey, err := bridgeAddress()
+	if err != nil {
+		return fmt.Errorf("ssw.BridgeAddressForPrint: %v", err)
+	}
+
+	client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
+	getRequest, err := http.NewRequestWithContext(ctx, "GET", hueAddress+"/clip/v2/resource/grouped_light", nil)
+	if err != nil {
+		return fmt.Errorf("ssw.NewGetRequest: %v", err)
+	}
+	getRequest.Header.Set("Hue-Application-Key", hueKey)
+	getResponse, err := client.Do(getRequest)
+	if err != nil {
+		return fmt.Errorf("ssw.SendGetRequest: %v", err)
+	}
+	getBody, err := io.ReadAll(getResponse.Body)
+	if err != nil {
+		getResponse.Body.Close()
+		return fmt.Errorf("ssw.ReadGetResponseBody: %v", err)
+	}
+	getResponse.Body.Close()
+	if getResponse.StatusCode != 200 {
+		return fmt.Errorf("ssw.GetGroupedLights status=%q body:\n%s", getResponse.Status, getBody)
+	}
+
+	brightness, response := map[string]float64{}, map[string]any{}
+	if err := json.Unmarshal(getBody, &response); err != nil {
+		return fmt.Errorf("ssw.ParseGroupedLights: %v", err)
+	}
+	for _, d := range jget(response, "data").([]any) {
+		b := jget(d, "dimming", "brightness").(float64)
+		if b < 1.0 && jget(d, "on", "on").(bool) {
+			b = 1.0
+		}
+		brightness[jget(d, "id").(string)] = b
+	}
+
+	for line := range strings.Lines(data) {
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		b, ok := brightness[fields[1]]
+		if ok { // on success
+			fmt.Printf("%s %3.0f%%\n", fields[0], b)
+		} else {
+			fmt.Printf("%s unavailable\n", fields[0])
+		}
+	}
+	return nil
+}
+
+func Run(ctx context.Context) error {
+	// Parse arguments.
+	flag.Usage = usage
+	flag.Parse()
+	if flag.NArg() == 0 {
+		if err := printBrightness(ctx); err != nil {
+			return fmt.Errorf("ssw.PrintBrightness: %v", err)
+		}
+		return nil
+	}
+
+	targetLamp := byte('o')
+	for _, arg := range flag.Args() {
+		for _, c := range arg {
+			if '0' <= c && c <= '9' {
+				setBrightness(ctx, targetLamp, int(c-'0'))
+			} else {
+				targetLamp = byte(c)
+			}
+		}
 	}
 	return nil
 }
