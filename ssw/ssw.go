@@ -243,7 +243,9 @@ func Run(ctx context.Context) error {
 	for _, arg := range flag.Args() {
 		for _, c := range arg {
 			if '0' <= c && c <= '9' {
-				setBrightness(ctx, targetLamp, int(c-'0'))
+				if err := setBrightness(ctx, targetLamp, int(c-'0')); err != nil {
+					return fmt.Errorf("ssw.SetBrightness lamp=%c level=%d: %v", err, targetLamp, int(c-'0'))
+				}
 			} else {
 				targetLamp = byte(c)
 			}
