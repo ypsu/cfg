@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 	"unsafe"
 
 	_ "embed"
@@ -72,6 +73,17 @@ func bridgeAddress() (address, key string, err error) {
 	return hueAddress, hueKey, nil
 }
 
+type i2cMessage struct {
+	addr  uint16
+	flags uint16
+	len   uint16
+	buf   uintptr
+}
+type i2cRDWRData struct {
+	msgs  uintptr
+	nmsgs uint32
+}
+
 func setDDCBrightness(brightness int) error {
 	fd, err := os.OpenFile("/dev/i2c-12", os.O_RDWR, 0)
 	if err != nil {
@@ -79,16 +91,6 @@ func setDDCBrightness(brightness int) error {
 	}
 	defer fd.Close()
 
-	type i2cMessage struct {
-		addr  uint16
-		flags uint16
-		len   uint16
-		buf   uintptr
-	}
-	type i2cRDWRData struct {
-		msgs  uintptr
-		nmsgs uint32
-	}
 	payload := []byte{0x51, 0x84, 0x03, 0x10, 0x00, byte(brightness), 0x00}
 	msg := i2cMessage{0x37, 0, uint16(len(payload)), uintptr(unsafe.Pointer(&payload[0]))}
 	data := i2cRDWRData{uintptr(unsafe.Pointer(&msg)), 1}
@@ -96,6 +98,36 @@ func setDDCBrightness(brightness int) error {
 	if errno != 0 {
 		return fmt.Errorf("ssw.Syscall: %v", errno)
 	}
+	return nil
+}
+
+func printDDCBrightness() error {
+	fd, err := os.OpenFile("/dev/i2c-12", os.O_RDWR, 0)
+	if err != nil {
+		// No supported monitor attached, ignore.
+		return nil
+	}
+	defer fd.Close()
+	payload := []byte{0x51, 0x82, 0x01, 0x10, 0x00, 0x00}
+	msg := i2cMessage{0x37, 0, uint16(len(payload)), uintptr(unsafe.Pointer(&payload[0]))}
+	data := i2cRDWRData{uintptr(unsafe.Pointer(&msg)), 1}
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), 0x0707, uintptr(unsafe.Pointer(&data)))
+	if errno != 0 {
+		return fmt.Errorf("ssw.WriteSyscall: %v", errno)
+	}
+
+	time.Sleep(50 * time.Millisecond) // need to wait for monitor response
+	payload = make([]byte, 12)
+	msg = i2cMessage{0x37, 1, uint16(len(payload)), uintptr(unsafe.Pointer(&payload[0]))}
+	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), 0x0707, uintptr(unsafe.Pointer(&data)))
+	if errno != 0 {
+		return fmt.Errorf("ssw.ReadSyscall: %v", errno)
+	}
+	if payload[2] != 2 && payload[4] != 10 {
+		return fmt.Errorf("ssw.InvalidDDCResponse: %v", payload)
+	}
+	currentBrightness := int(payload[9])
+	fmt.Printf("d %3d%%\n", currentBrightness)
 	return nil
 }
 
@@ -176,6 +208,10 @@ func jget(v any, path ...string) any {
 }
 
 func printBrightness(ctx context.Context) error {
+	if err := printDDCBrightness(); err != nil {
+		fmt.Printf("ssw.PrintDDCBrightness: %v\n", err)
+	}
+
 	hueAddress, hueKey, err := bridgeAddress()
 	if err != nil {
 		return fmt.Errorf("ssw.BridgeAddressForPrint: %v", err)
