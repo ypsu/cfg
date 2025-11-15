@@ -1,10 +1,10 @@
-// The tool ssw (Simple SWitch) sets hue and monitor brightness.
+// The tool lll (Light Level Lever) sets hue and monitor brightness.
 //
-// Usage: ssw [abdhot0123]
-// Example: ssw o0b2
+// Usage: lll [abdhot0123]
+// Example: lll o0b2
 //
 // Prints current light levels if given no arguments.
-package ssw
+package lll
 
 import (
 	"bytes"
@@ -35,7 +35,7 @@ o c69ee95f-0bbc-43c4-a823-9c3d74f4d5b8 434b05f3-6738-42d5-8f03-db248eae84ce 7b7d
 t 2407f461-df2a-4324-9f15-077d349e968b e2a5d992-dd8b-4391-9ae9-4be756bd0418 d3492c62-4919-413d-ae1e-ef596ee7e231 354de2b2-6fc8-4529-bd63-27f49e703335
 `
 
-//go:embed ssw.go
+//go:embed lll.go
 var source string
 
 func usage() {
@@ -68,7 +68,7 @@ func bridgeAddress() (address, key string, err error) {
 		}
 	}
 	if hueAddress == "" || hueKey == "" {
-		return "", "", fmt.Errorf("ssw.MissingBridgeData (either hueaddress or huekey is missing from $HOME/.config/hue.cfg)")
+		return "", "", fmt.Errorf("lll.MissingBridgeData (either hueaddress or huekey is missing from $HOME/.config/hue.cfg)")
 	}
 	return hueAddress, hueKey, nil
 }
@@ -87,7 +87,7 @@ type i2cRDWRData struct {
 func setDDCBrightness(brightness int) error {
 	fd, err := os.OpenFile("/dev/i2c-12", os.O_RDWR, 0)
 	if err != nil {
-		return fmt.Errorf("ssw.OpenI2CFile: %v", err)
+		return fmt.Errorf("lll.OpenI2CFile: %v", err)
 	}
 	defer fd.Close()
 
@@ -96,7 +96,7 @@ func setDDCBrightness(brightness int) error {
 	data := i2cRDWRData{uintptr(unsafe.Pointer(&msg)), 1}
 	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), 0x0707, uintptr(unsafe.Pointer(&data)))
 	if errno != 0 {
-		return fmt.Errorf("ssw.Syscall: %v", errno)
+		return fmt.Errorf("lll.Syscall: %v", errno)
 	}
 	return nil
 }
@@ -113,7 +113,7 @@ func printDDCBrightness() error {
 	data := i2cRDWRData{uintptr(unsafe.Pointer(&msg)), 1}
 	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), 0x0707, uintptr(unsafe.Pointer(&data)))
 	if errno != 0 {
-		return fmt.Errorf("ssw.WriteSyscall: %v", errno)
+		return fmt.Errorf("lll.WriteSyscall: %v", errno)
 	}
 
 	time.Sleep(50 * time.Millisecond) // need to wait for monitor response
@@ -121,10 +121,10 @@ func printDDCBrightness() error {
 	msg = i2cMessage{0x37, 1, uint16(len(payload)), uintptr(unsafe.Pointer(&payload[0]))}
 	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), 0x0707, uintptr(unsafe.Pointer(&data)))
 	if errno != 0 {
-		return fmt.Errorf("ssw.ReadSyscall: %v", errno)
+		return fmt.Errorf("lll.ReadSyscall: %v", errno)
 	}
 	if payload[2] != 2 && payload[4] != 10 {
-		return fmt.Errorf("ssw.InvalidDDCResponse: %v", payload)
+		return fmt.Errorf("lll.InvalidDDCResponse: %v", payload)
 	}
 	currentBrightness := int(payload[9])
 	fmt.Printf("d %3d%%\n", currentBrightness)
@@ -133,21 +133,21 @@ func printDDCBrightness() error {
 
 func setBrightness(ctx context.Context, lamp byte, level int) error {
 	if level > 3 {
-		return fmt.Errorf("ssw.TargetTooHigh got=%d max=%d", level, 3)
+		return fmt.Errorf("lll.TargetTooHigh got=%d max=%d", level, 3)
 	}
 
 	// d means Display.
 	if lamp == 'd' {
 		levels := [...]int{0, 25, 75, 100}
 		if err := setDDCBrightness(levels[level]); err != nil {
-			return fmt.Errorf("ssw.SetBrightness: %v", err)
+			return fmt.Errorf("lll.SetBrightness: %v", err)
 		}
 		return nil
 	}
 
 	hueAddress, hueKey, err := bridgeAddress()
 	if err != nil {
-		return fmt.Errorf("ssw.BridgeAddressForBrightness: %v", err)
+		return fmt.Errorf("lll.BridgeAddressForBrightness: %v", err)
 	}
 
 	// Find the matching target.
@@ -158,13 +158,13 @@ func setBrightness(ctx context.Context, lamp byte, level int) error {
 			continue
 		}
 		if level >= len(fields)-1 {
-			return fmt.Errorf("ssw.TargetHigherThanScenes got=%d max=%d", level, len(fields)-2)
+			return fmt.Errorf("lll.TargetHigherThanScenes got=%d max=%d", level, len(fields)-2)
 		}
 		target = fields[level+1]
 		break
 	}
 	if target == "" {
-		return fmt.Errorf("ssw.TargetNotFound target=%c", lamp)
+		return fmt.Errorf("lll.TargetNotFound target=%c", lamp)
 	}
 
 	// Craft and send the request.
@@ -175,21 +175,21 @@ func setBrightness(ctx context.Context, lamp byte, level int) error {
 	}
 	setRequest, err := http.NewRequestWithContext(ctx, "PUT", hueAddress+"/clip/v2/resource"+resource+target, body)
 	if err != nil {
-		return fmt.Errorf("ssw.NewSetRequest: %v", err)
+		return fmt.Errorf("lll.NewSetRequest: %v", err)
 	}
 	setRequest.Header.Set("Hue-Application-Key", hueKey)
 	setResponse, err := client.Do(setRequest)
 	if err != nil {
-		return fmt.Errorf("ssw.SendSetRequest: %v", err)
+		return fmt.Errorf("lll.SendSetRequest: %v", err)
 	}
 	setBody, err := io.ReadAll(setResponse.Body)
 	if err != nil {
 		setResponse.Body.Close()
-		return fmt.Errorf("ssw.ReadSetResponseBody: %v", err)
+		return fmt.Errorf("lll.ReadSetResponseBody: %v", err)
 	}
 	setResponse.Body.Close()
 	if setResponse.StatusCode != 200 {
-		return fmt.Errorf("ssw.Set status=%q body:\n%s", setResponse.Status, setBody)
+		return fmt.Errorf("lll.Set status=%q body:\n%s", setResponse.Status, setBody)
 	}
 	return nil
 }
@@ -209,37 +209,37 @@ func jget(v any, path ...string) any {
 
 func printBrightness(ctx context.Context) error {
 	if err := printDDCBrightness(); err != nil {
-		fmt.Printf("ssw.PrintDDCBrightness: %v\n", err)
+		fmt.Printf("lll.PrintDDCBrightness: %v\n", err)
 	}
 
 	hueAddress, hueKey, err := bridgeAddress()
 	if err != nil {
-		return fmt.Errorf("ssw.BridgeAddressForPrint: %v", err)
+		return fmt.Errorf("lll.BridgeAddressForPrint: %v", err)
 	}
 
 	client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	getRequest, err := http.NewRequestWithContext(ctx, "GET", hueAddress+"/clip/v2/resource/grouped_light", nil)
 	if err != nil {
-		return fmt.Errorf("ssw.NewGetRequest: %v", err)
+		return fmt.Errorf("lll.NewGetRequest: %v", err)
 	}
 	getRequest.Header.Set("Hue-Application-Key", hueKey)
 	getResponse, err := client.Do(getRequest)
 	if err != nil {
-		return fmt.Errorf("ssw.SendGetRequest: %v", err)
+		return fmt.Errorf("lll.SendGetRequest: %v", err)
 	}
 	getBody, err := io.ReadAll(getResponse.Body)
 	if err != nil {
 		getResponse.Body.Close()
-		return fmt.Errorf("ssw.ReadGetResponseBody: %v", err)
+		return fmt.Errorf("lll.ReadGetResponseBody: %v", err)
 	}
 	getResponse.Body.Close()
 	if getResponse.StatusCode != 200 {
-		return fmt.Errorf("ssw.GetGroupedLights status=%q body:\n%s", getResponse.Status, getBody)
+		return fmt.Errorf("lll.GetGroupedLights status=%q body:\n%s", getResponse.Status, getBody)
 	}
 
 	brightness, response := map[string]float64{}, map[string]any{}
 	if err := json.Unmarshal(getBody, &response); err != nil {
-		return fmt.Errorf("ssw.ParseGroupedLights: %v", err)
+		return fmt.Errorf("lll.ParseGroupedLights: %v", err)
 	}
 	for _, d := range jget(response, "data").([]any) {
 		b := jget(d, "dimming", "brightness").(float64)
@@ -270,7 +270,7 @@ func Run(ctx context.Context) error {
 	flag.Parse()
 	if flag.NArg() == 0 {
 		if err := printBrightness(ctx); err != nil {
-			return fmt.Errorf("ssw.PrintBrightness: %v", err)
+			return fmt.Errorf("lll.PrintBrightness: %v", err)
 		}
 		return nil
 	}
@@ -280,7 +280,7 @@ func Run(ctx context.Context) error {
 		for _, c := range arg {
 			if '0' <= c && c <= '9' {
 				if err := setBrightness(ctx, targetLamp, int(c-'0')); err != nil {
-					return fmt.Errorf("ssw.SetBrightness lamp=%c level=%d: %v", err, targetLamp, int(c-'0'))
+					return fmt.Errorf("lll.SetBrightness lamp=%c level=%d: %v", err, targetLamp, int(c-'0'))
 				}
 			} else {
 				targetLamp = byte(c)

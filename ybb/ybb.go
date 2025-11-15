@@ -14,7 +14,7 @@ import (
 	"github.com/ypsu/cfg/huepush"
 	"github.com/ypsu/cfg/makecfg"
 	"github.com/ypsu/cfg/pedit"
-	"github.com/ypsu/cfg/ssw"
+	"github.com/ypsu/cfg/lll"
 	"github.com/ypsu/cfg/todotool"
 	"github.com/ypsu/cfg/toollist"
 
@@ -30,7 +30,7 @@ func run(ctx context.Context) error {
 		{huepush.Run, "huepush: pushes my intent to the hue switches."},
 		{makecfg.Run, "makecfg: Sets up ~/.bin and other stuff."},
 		{pedit.Run, "pedit: Edit a password protected file."},
-		{ssw.Run, "ssw: Simple SWitch sets lamp and monitor brightness."},
+		{lll.Run, "lll: Light Level Lever sets lamp and monitor brightness."},
 		{todotool.Run, "todo: Print my active task queue."},
 	}
 
