@@ -35,6 +35,8 @@ func TestRFC2047(t *testing.T) {
 	et.Expect("", decodeRFC2047("=?utf-8?B?c3rFkWzFkSwgYmFuw6FuIGFs?= =?utf-8?Q?ma_di=C3=B3?= = =?utf-8?Q?al ma?= narancs"), "szőlő, banán alma dió = al ma narancs")
 	et.Expect("", decodeRFC2047("=?UTF-8?Q?=F0=9F=93=86_Beginnen_Sie_das_Jahr_2025_mit_einem_strahlenden_L?= =?UTF-8?Q?=C3=A4cheln_=E2=80=93_und_mit_einer_einfachen_Terminbuchung!?="), "📆 Beginnen Sie das Jahr 2025 mit einem strahlenden Lächeln – und mit einer einfachen Terminbuchung!")
 	et.Expect("", decodeRFC2047("=?utf-8?Q?V=C3=A1ltson Digit=C3=A1lis =C3=81llampolg=C3=A1r alkalmaz=C3=A1sra vagy =C3=9Cgyf=C3=A9lkapu+-ra, hogy elektronikusan int=C3=A9zhesse az =C3=BCgyeit!?="), "Váltson Digitális Állampolgár alkalmazásra vagy Ügyfélkapu+-ra, hogy elektronikusan intézhesse az ügyeit!")
+	et.Expect("", decodeRFC2047("=?iso-8859-2?Q?Fw:_Fi=F3k_megsz=FBn=E9se_/_t=F6rl=E9se_-_Account_removing?="), "Fw: Fiók megszûnése / törlése - Account removing")
+	et.Expect("", decodeRFC2047("=?ISO-8859-2?Q?Fw:_Fi=F3k_megsz=FBn=E9se_/_t=F6rl=E9se_-_Account_removing?="), "Fw: Fiók megszûnése / törlése - Account removing")
 }
 
 func TestMain(m *testing.M) {

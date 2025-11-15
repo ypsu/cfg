@@ -21,6 +21,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 func usage() {
@@ -83,6 +84,8 @@ func splitSubject(subject string) []string {
 // result: 📆 Beginnen Sie das Jahr 2025 mit einem strahlenden Lächeln – und mit einer einfachen Terminbuchung!
 // input: =?utf-8?Q?V=C3=A1ltson Digit=C3=A1lis =C3=81llampolg=C3=A1r alkalmaz=C3=A1sra vagy =C3=9Cgyf=C3=A9lkapu+-ra, hogy elektronikusan int=C3=A9zhesse az =C3=BCgyeit!?=
 // result: Váltson Digitális Állampolgár alkalmazásra vagy Ügyfélkapu+-ra, hogy elektronikusan intézhesse az ügyeit!
+// input: =?iso-8859-2?Q?Fw:_Fi=F3k_megsz=FBn=E9se_/_t=F6rl=E9se_-_Account_removing?=
+// result: Fw: Fiók megszûnése / törlése - Account removing
 func decodeRFC2047(s string) string {
 	r := strings.Builder{}
 	wasQuoted := false
@@ -112,6 +115,17 @@ func decodeRFC2047(s string) string {
 			d, err = io.ReadAll(quotedprintable.NewReader(ssrd))
 		} else {
 			err = errors.New("invalid encoding")
+		}
+		if strings.Contains(f[1], "8859") { // iso-8859 support
+			var nd []byte
+			for _, ch := range d {
+				if ch < 128 {
+					nd = append(nd, ch)
+				} else {
+					nd = utf8.AppendRune(nd, rune(ch))
+				}
+			}
+			d = nd
 		}
 		if err != nil {
 			wasQuoted = false
