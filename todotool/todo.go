@@ -412,7 +412,7 @@ func Run(ctx context.Context) error {
 					}
 				} else if len(line) == 0 {
 					if title != "" {
-						title = strings.TrimPrefix(strings.TrimSpace(title), "Re: ")
+						title = strings.TrimPrefix(strings.TrimSpace(decodeRFC2047(title)), "Re: ")
 						v, ok := titles[title]
 						if !ok {
 							titles[title] = seen
@@ -435,9 +435,9 @@ func Run(ctx context.Context) error {
 				sort.Strings(sortedTitles)
 				for i, t := range sortedTitles {
 					if titles[t] {
-						sortedTitles[i] = "    " + decodeRFC2047(t)
+						sortedTitles[i] = "    " + t
 					} else {
-						sortedTitles[i] = "  u " + decodeRFC2047(t)
+						sortedTitles[i] = "  u " + t
 					}
 				}
 				c.result <- fmt.Sprintf("%s:\n%s\n", c.user, strings.Join(sortedTitles, "\n"))
