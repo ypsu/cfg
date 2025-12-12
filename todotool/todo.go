@@ -176,6 +176,9 @@ func Run(ctx context.Context) error {
 		return nil
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	flag.Usage = usage
 	flag.Parse()
 	now := time.Now().Format("20060102.150405")
@@ -389,6 +392,11 @@ func Run(ctx context.Context) error {
 				c.result <- fmt.Sprintf("connect error for %s\n", c.user)
 				return
 			}
+			defer conn.Close()
+			go func() {
+				<-ctx.Done()
+				conn.SetDeadline(time.Now())
+			}()
 			request := fmt.Sprintf("a0 login %s %s\r\n", c.user, c.pass)
 			request += fmt.Sprintf("a1 select %s\r\n", c.inbox)
 			request += fmt.Sprintf("a2 fetch 1:99 (flags body.peek[header.fields (subject)])\r\n")
@@ -399,6 +407,9 @@ func Run(ctx context.Context) error {
 			}
 			reply, err := io.ReadAll(conn)
 			if err != nil {
+				if e := ctx.Err(); e != nil {
+					err = e
+				}
 				c.result <- fmt.Sprintf("failed reading from %s: %v\n", c.user, err)
 				return
 			}
