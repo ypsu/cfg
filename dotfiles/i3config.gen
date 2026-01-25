@@ -211,3 +211,8 @@ cat <<'eof'
         }
 }
 eof
+
+test -x /usr/bin/ibus && cat <<'eof'
+  exec --no-startup-id /usr/bin/ibus exit
+eof
+true
