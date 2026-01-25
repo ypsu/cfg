@@ -1,4 +1,3 @@
 #!/bin/bash
 rx
-ibus exit
 exec i3
