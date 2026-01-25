@@ -24,7 +24,7 @@
     }                                                   \
   } while (0);
 
-void handle_case(const char *expr, const char *file, const char *func,
+void handle_case(const char* expr, const char* file, const char* func,
                  int line) {
   printf("unhandled case, errno = %d (%m)\n", errno);
   printf("in expression '%s'\n", expr);
@@ -34,7 +34,7 @@ void handle_case(const char *expr, const char *file, const char *func,
   exit(1);
 }
 
-void swrite(int fd, const void *data, int len) {
+void swrite(int fd, const void* data, int len) {
   HANDLE_CASE(write(fd, data, len) != len);
 }
 
@@ -98,9 +98,9 @@ void tolower_table_calc(void) {
 int buffer_sz;
 char buffer[BUFFER_MAX];
 
-char *bufdup(const char *buf, int sz) {
+char* bufdup(const char* buf, int sz) {
   HANDLE_CASE(buffer_sz + sz >= BUFFER_MAX);
-  char *p = buffer + buffer_sz;
+  char* p = buffer + buffer_sz;
   memcpy(p, buf, sz);
   buffer_sz += sz;
   return p;
@@ -109,31 +109,31 @@ char *bufdup(const char *buf, int sz) {
 int entries_sz;
 struct entry {
   int len;
-  const char *name;
-  const char *name_lower;
+  const char* name;
+  const char* name_lower;
 } entries[ENTRIES_MAX];
 
-void entry_add(const char *buf, int len) {
+void entry_add(const char* buf, int len) {
   HANDLE_CASE(entries_sz >= ENTRIES_MAX);
-  struct entry *e = &entries[entries_sz++];
+  struct entry* e = &entries[entries_sz++];
   e->len = len;
   e->name = buf;
-  char *lowbuf = bufdup(buf, len + 1);
-  for (char *p = lowbuf; *p != 0; ++p) *p = tolower_table[(unsigned char)*p];
+  char* lowbuf = bufdup(buf, len + 1);
+  for (char* p = lowbuf; *p != 0; ++p) *p = tolower_table[(unsigned char)*p];
   e->name_lower = lowbuf;
 }
 
-int entry_cmp(const void *a, const void *b) {
-  const struct entry *x = a;
-  const struct entry *y = b;
+int entry_cmp(const void* a, const void* b) {
+  const struct entry* x = a;
+  const struct entry* y = b;
   return strcmp(x->name_lower, y->name_lower);
 }
 
 int curpath_sz;
 char curpath[PATH_MAX + 1];
 
-void read_subtree(DIR *dirp) {
-  struct dirent *ent;
+void read_subtree(DIR* dirp) {
+  struct dirent* ent;
   while ((ent = readdir(dirp)) != NULL) {
     if (ent->d_name[0] == '.') continue;
     int len = strlen(ent->d_name);
@@ -151,7 +151,7 @@ void read_subtree(DIR *dirp) {
     }
 
     if (ent->d_type == DT_DIR) {
-      DIR *subdirp = opendir(curpath);
+      DIR* subdirp = opendir(curpath);
       if (subdirp == NULL) {
         HANDLE_CASE(errno != EACCES);
       } else {
@@ -171,7 +171,7 @@ void read_subtree(DIR *dirp) {
 void read_hierarchy(void) {
   puts("reading directory hierarchy");
 
-  DIR *dirp = opendir(curpath);
+  DIR* dirp = opendir(curpath);
   HANDLE_CASE(dirp == NULL);
   read_subtree(dirp);
   HANDLE_CASE(closedir(dirp) == -1);
@@ -180,7 +180,7 @@ void read_hierarchy(void) {
 int matches_count;
 int selection;
 int first_match;
-void match_pattern(const char *pattern) {
+void match_pattern(const char* pattern) {
   bool exact_first = false;
   bool exact_last = false;
 
@@ -198,7 +198,7 @@ void match_pattern(const char *pattern) {
   int offset = 0;
   while (words_cnt < 32) {
     int new_offset = 0;
-    const char *s = pattern + offset;
+    const char* s = pattern + offset;
     if (sscanf(s, "%255s%n", words[words_cnt], &new_offset) != 1) break;
     offset += new_offset;
     words_cnt += 1;
@@ -216,14 +216,14 @@ restart:
   // letters can be preceded by any other characters.
   first_match = -1;
 
-  char *buf = output_buffer;
+  char* buf = output_buffer;
   memcpy(buf, "\e[s\e[J\n\n", 8);
   buf += 7;
 
   int matched = 0;
   for (int i = 0; i < entries_sz; ++i) {
-    const struct entry *e = &entries[i];
-    const char *q = e->name_lower;
+    const struct entry* e = &entries[i];
+    const char* q = e->name_lower;
     int qlen = e->len;
     int word;
 
@@ -232,7 +232,7 @@ restart:
         if (strstr(q, words[0]) != q) break;
       } else if (word == words_cnt - 1 && exact_last) {
         if (last_len > qlen) break;
-        const char *qe = q + qlen - last_len;
+        const char* qe = q + qlen - last_len;
         if (strcmp(qe, words[words_cnt - 1]) != 0) break;
       } else if (strstr(q, words[word]) == NULL) {
         break;
@@ -249,7 +249,7 @@ restart:
         memcpy(buf, "    ", 4);
       }
       buf += 4;
-      const char *s = e->name;
+      const char* s = e->name;
       if (matched >= term_height - 3) {
         s = "... and others ...";
       } else if (qlen + 6 >= term_width) {
@@ -277,11 +277,11 @@ restart:
   }
 }
 
-void noop(char *s) { (void)s; }
+void noop(char* s) { (void)s; }
 
-bool streq(const char *a, const char *b) { return strcmp(a, b) == 0; }
+bool streq(const char* a, const char* b) { return strcmp(a, b) == 0; }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   for (int fd = 3; fd < 16; ++fd) close(fd);
 
   curpath[0] = '.';

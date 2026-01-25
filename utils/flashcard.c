@@ -72,7 +72,7 @@
 
 // check is like an assert but always enabled.
 #define check(cond) checkfunc(cond, #cond, __FILE__, __LINE__)
-void checkfunc(bool ok, const char *s, const char *file, int line) {
+void checkfunc(bool ok, const char* s, const char* file, int line) {
   if (ok) return;
   printf("checkfail at %s %d %s\n", file, line, s);
   if (errno != 0) printf("errno: %m\n");
@@ -82,9 +82,9 @@ void checkfunc(bool ok, const char *s, const char *file, int line) {
 enum { cardlimit = 1000 };
 
 struct card {
-  char *id;
-  char *question;
-  char *answer;
+  char* id;
+  char* question;
+  char* answer;
   time_t triggertime;
   int days;
 };
@@ -92,8 +92,8 @@ struct card {
 static int cards;
 static struct card card[cardlimit];
 
-int cardcmp(const void *a, const void *b) {
-  return strcmp(((const struct card *)a)->id, ((const struct card *)b)->id);
+int cardcmp(const void* a, const void* b) {
+  return strcmp(((const struct card*)a)->id, ((const struct card*)b)->id);
 }
 
 int main(void) {
@@ -105,7 +105,7 @@ int main(void) {
 
   // open ~/.flashcard.
   check(chdir(getenv("HOME")) == 0);
-  FILE *f = fopen(".flashcard", "r");
+  FILE* f = fopen(".flashcard", "r");
   check(f != NULL);
   char line[1000];
 
@@ -159,7 +159,7 @@ int main(void) {
       exit(1);
     }
     struct card soughtcard = {.id = id};
-    struct card *thecard;
+    struct card* thecard;
     thecard = bsearch(&soughtcard, card, cards, sizeof(card[0]), cardcmp);
     if (thecard == NULL) {
       printf("error, identifier not found: %s\n", id);
@@ -187,8 +187,8 @@ int main(void) {
   check(fclose(f) == 0);
 
   // presentquestion: pick and present a question.
-  struct card *acard = NULL;
-  struct card *defaultcard = NULL;
+  struct card* acard = NULL;
+  struct card* defaultcard = NULL;
   for (int i = 0; i < cards; i++) {
     // skip the default question for now.
     if (strcmp(card[i].id, "default") == 0) {

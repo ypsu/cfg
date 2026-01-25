@@ -18,9 +18,9 @@
       check(#cond, __FILE__, __func__, __LINE__); \
     }                                             \
   } while (0)
-static void check(const char *expr, const char *file, const char *func,
+static void check(const char* expr, const char* file, const char* func,
                   int line) {
-  const char *fmt;
+  const char* fmt;
   fmt = "check \"%s\" in %s at %s:%d failed, errno = %d (%m)\n";
   printf(fmt, expr, func, file, line, errno);
   abort();
@@ -33,7 +33,7 @@ const char usage[] =
     "-h  Print this message.\n"
     "-r  Rewrite the timedate to the current time.\n";
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   setlinebuf(stdout);
   bool rewrite_date = false;
   int opt;
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
     int len = strlen(buf);
     if (rewrite_date && len > 20) {
       time_t t = time(NULL);
-      struct tm *tm = localtime(&t);
+      struct tm* tm = localtime(&t);
       CHECK(snprintf(buf + len - 16, 17, "%04d-%02d-%02d %02d:%02d",
                      tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
                      tm->tm_hour, tm->tm_min) < 17);

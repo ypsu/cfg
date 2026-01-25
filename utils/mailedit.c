@@ -24,7 +24,7 @@
 
 // check is like an assert but always enabled.
 #define check(cond) checkfunc(cond, #cond, __FILE__, __LINE__)
-void checkfunc(bool ok, const char *s, const char *file, int line) {
+void checkfunc(bool ok, const char* s, const char* file, int line) {
   if (ok) return;
   printf("checkfail at %s %d %s\n", file, line, s);
   if (errno != 0) printf("errno: %m\n");
@@ -44,9 +44,9 @@ static struct contact contact[contactslimit];
 static int recipients;
 static struct contact recipient[contactslimit];
 
-int contactcmp(const void *a, const void *b) { return strcmp(a, b); }
+int contactcmp(const void* a, const void* b) { return strcmp(a, b); }
 
-void sortuniq(struct contact *contact, int *contacts) {
+void sortuniq(struct contact* contact, int* contacts) {
   if (*contacts == 0) return;
   qsort(contact, *contacts, sizeof(contact[0]), contactcmp);
   int newend = 1;
@@ -61,7 +61,7 @@ void sortuniq(struct contact *contact, int *contacts) {
   *contacts = newend;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   if (argc != 2) {
     puts("mailedit - tool to sanity check my email messages, see mailedit.c.");
     puts("usage: mailedit [fname]");
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
     check(system(cmd) == 0);
 
     // read the contacts.
-    FILE *f = fopen(contactfile, "r");
+    FILE* f = fopen(contactfile, "r");
     check(f != NULL);
     char line[10000];
     contacts = 0;
@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
       check(len < 9900);
       if (line[0] == 0 || line[0] == '\n') break;
       for (int i = 0; i < len; i++) line[i] = tolower((unsigned char)line[i]);
-      char *ptr = line;
+      char* ptr = line;
       if (strncmp(line, "to:", 3) == 0 || strncmp(line, "cc:", 3) == 0) {
         addressmode = true;
         ptr += 3;
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
       // but does not really matter, just iterate through all tokens and collect
       // the ones that look like email addresses. should cover most of the
       // cases.
-      char *tok = strtok(ptr, " \t\n<>,\"");
+      char* tok = strtok(ptr, " \t\n<>,\"");
       while (tok != NULL) {
         if (strchr(tok, '@') != NULL) {
           check(recipients < contactslimit);

@@ -13,7 +13,7 @@
   do {                                                          \
     if (cond) handle_case(#cond, __FILE__, __func__, __LINE__); \
   } while (0)
-void handle_case(const char *expr, const char *file, const char *fn, int ln) {
+void handle_case(const char* expr, const char* file, const char* fn, int ln) {
   printf("unhandled case, errno = %d (%m)\n", errno);
   printf("in expression '%s'\n", expr);
   printf("in function %s\n", fn);
@@ -108,7 +108,7 @@ int main(void) {
   // If there are multiple lines indent the rest of them based on the second
   // line's indent
   if (lines > 1) {
-    uint8_t *newline = memchr(input, '\n', input_length);
+    uint8_t* newline = memchr(input, '\n', input_length);
     assert(newline != NULL);
     int start = newline - input + 1;
     int i = start;

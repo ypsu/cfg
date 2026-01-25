@@ -24,9 +24,9 @@
       check(#cond, __FILE__, __func__, __LINE__); \
     }                                             \
   } while (0)
-static void check(const char *expr, const char *file, const char *func,
+static void check(const char* expr, const char* file, const char* func,
                   int line) {
-  const char *fmt;
+  const char* fmt;
   fmt = "check \"%s\" in %s at %s:%d failed, errno = %d (%m)\n";
   printf(fmt, expr, func, file, line, errno);
   abort();
@@ -62,9 +62,9 @@ struct config {
   bool print_usage;
   bool daemonize;
   int delay_ms;
-  const char *audio;
-  const char *net_ifaces;
-  const char *output;
+  const char* audio;
+  const char* net_ifaces;
+  const char* output;
 
   // Runtime data.
   int output_fd;
@@ -74,15 +74,15 @@ struct config {
   int up_fd[MAX_IFACES];
   int down_fd[MAX_IFACES];
   struct utsname uname;
-  snd_mixer_t *snd_mixer;
-  snd_mixer_elem_t *snd_elem;
+  snd_mixer_t* snd_mixer;
+  snd_mixer_elem_t* snd_elem;
   int bat_full, bat_now;
 };
 
 static void sighup_handler(int sig) { (void)sig; }
 
 // buf must be at least 9 bytes long.
-static void fmt_bytes(int64_t bytes, char *buf, int min_unit) {
+static void fmt_bytes(int64_t bytes, char* buf, int min_unit) {
   enum { MAX_UNITS = 7 };
   static const char units[MAX_UNITS][4] = {
       "b", "k", "m", "g", "t", "p", "e",
@@ -121,7 +121,7 @@ static const char usage[] =
     "-o FILE    Write human readable stats to FILE. \"-\" means stdout. The\n"
     "           default is \"/tmp/.sysstat\".\n";
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Initial configuration.
   struct config config;
   config.print_usage = false;
@@ -204,10 +204,10 @@ int main(int argc, char **argv) {
   char ifaces[200];
   CHECK(strlcpy(ifaces, config.net_ifaces, 150) < 100);
   config.ifaces = 0;
-  const char *iface = strtok(ifaces, ",");
+  const char* iface = strtok(ifaces, ",");
   do {
     char f[256];
-    const char *fmt;
+    const char* fmt;
     fmt = "/sys/class/net/%s/statistics/rx_bytes";
     snprintf(f, 200, fmt, iface);
     CHECK((config.down_fd[config.ifaces] = open(f, O_RDONLY)) > 0);
@@ -218,8 +218,8 @@ int main(int argc, char **argv) {
   } while ((iface = strtok(NULL, ",")) != NULL);
   if (strcmp(config.audio, "none") != 0) {
     CHECK(snd_mixer_open(&config.snd_mixer, 0) == 0);
-    snd_mixer_t *mixer = config.snd_mixer;
-    snd_mixer_selem_id_t *sid;
+    snd_mixer_t* mixer = config.snd_mixer;
+    snd_mixer_selem_id_t* sid;
     CHECK(snd_mixer_attach(mixer, "default") == 0);
     CHECK(snd_mixer_selem_register(mixer, NULL, NULL) == 0);
     CHECK(snd_mixer_load(mixer) == 0);
@@ -266,7 +266,7 @@ int main(int argc, char **argv) {
     // Read the memory stats.
     CHECK((rby = pread(config.mem_fd, buf, BS, 0)) > 10);
     enum { MEMINFO_LINE_LENGTH = 28 };
-    const char *p;
+    const char* p;
     long long avail;
     p = buf + 2 * MEMINFO_LINE_LENGTH;
     CHECK(sscanf(p, "MemAvailable: %lld", &avail) == 1);
@@ -288,15 +288,15 @@ int main(int argc, char **argv) {
       if (evcnt == 0 && state.volume != -1) {
         goto volume_done;
       }
-      snd_mixer_elem_t *e = config.snd_elem;
+      snd_mixer_elem_t* e = config.snd_elem;
       long mn = 0, mx = 100, val;
       int r;
       r = snd_mixer_selem_get_playback_dB_range(e, &mn, &mx);
       if (r != 0) {
         // Fallback method.
-        const char *c;
+        const char* c;
         c = "amixer -M get Master | grep -o '[0-9]*%'";
-        FILE *f = popen(c, "r");
+        FILE* f = popen(c, "r");
         CHECK(f != NULL);
         CHECK(fscanf(f, "%d", &ns.volume) == 1);
         pclose(f);
@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
       int64_t full = extract_number(config.bat_full);
       int64_t now = extract_number(config.bat_now);
       ns.battery = now * 100 / full;
-      const char *battery_warning = "";
+      const char* battery_warning = "";
       // warn if i missed limiting the battery. ref:
       // https://askubuntu.com/questions/34452/how-can-i-limit-battery-charging-to-80-capacity
       if (ns.battery >= 90) battery_warning = " [toomuch]";
@@ -345,7 +345,7 @@ int main(int argc, char **argv) {
     // Print the stats.
     char mem[10], up[10], down[10];
     int cpu;
-    struct tm *tm;
+    struct tm* tm;
     double elapsed_time;
     elapsed_time = ns.time.tv_sec - state.time.tv_sec;
     elapsed_time += (ns.time.tv_nsec - state.time.tv_nsec) / 1.0e9;

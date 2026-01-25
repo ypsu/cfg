@@ -19,27 +19,28 @@
 #include <unistd.h>
 
 const char usage[] =
-  "pararun - parallel run\n"
-  "usage: pararun [flags] [prefix]\n"
-  "pararun reads commands from stdin and runs them in parallel. one command\n"
-  "per line. pararun buffers the outputs so that the command is equivalent\n"
-  "of running the commands in sequence. the return code is the maximum among\n"
-  "all the runs. if all returned successfully then it is 0. flags:\n"
-  "  -h     : this help text\n"
-  "  -j[num]: maximum number of threads to use. defaults to 2 times the\n"
-  "           number of cores the computer has.\n"
-  "  -q     : omit printing the commands (omit printing the yellow text).\n"
-  "examples:\n"
-  "parallel wordcount:\n"
-  "  ls | pararun wc\n"
-  "to download bunch of files:\n"
-  "  pararun -j99 <urls.txt wget\n"
-  "to compile bunch of files:\n"
-  "  for f in *.c; do echo gcc -o ${f%.c} $f; done | pararun -q\n";
+    "pararun - parallel run\n"
+    "usage: pararun [flags] [prefix]\n"
+    "pararun reads commands from stdin and runs them in parallel. one command\n"
+    "per line. pararun buffers the outputs so that the command is equivalent\n"
+    "of running the commands in sequence. the return code is the maximum "
+    "among\n"
+    "all the runs. if all returned successfully then it is 0. flags:\n"
+    "  -h     : this help text\n"
+    "  -j[num]: maximum number of threads to use. defaults to 2 times the\n"
+    "           number of cores the computer has.\n"
+    "  -q     : omit printing the commands (omit printing the yellow text).\n"
+    "examples:\n"
+    "parallel wordcount:\n"
+    "  ls | pararun wc\n"
+    "to download bunch of files:\n"
+    "  pararun -j99 <urls.txt wget\n"
+    "to compile bunch of files:\n"
+    "  for f in *.c; do echo gcc -o ${f%.c} $f; done | pararun -q\n";
 
 // check is like an assert but always enabled.
 #define check(cond) checkfunc(cond, #cond, __FILE__, __LINE__)
-void checkfunc(bool ok, const char *s, const char *file, int line) {
+void checkfunc(bool ok, const char* s, const char* file, int line) {
   if (ok) return;
   printf("checkfail at %s %d %s\n", file, line, s);
   if (errno != 0) printf("errno: %m\n");
@@ -57,7 +58,7 @@ static struct {
 
   // args holds the arguments. pararun passes this to execvp in the forked
   // children.
-  char *args[maxargs + 1];
+  char* args[maxargs + 1];
 
   // threadscount represent the number of children to run simultaneously. this
   // is the same as the -j argument.
@@ -89,7 +90,7 @@ static struct {
   int finished;
 } g;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // initalize globals, process cmdline flags.
   if (isatty(0)) {
     fputs(usage, stdout);
@@ -166,7 +167,7 @@ int main(int argc, char **argv) {
       }
       // set up cmdline arguments for the child task.
       g.inbuf[--linelen] = 0;
-      char *tok = strtok(g.inbuf, " ");
+      char* tok = strtok(g.inbuf, " ");
       int a = g.prefixargs;
       do {
         if (a == maxargs) {

@@ -20,21 +20,21 @@
 
 // check is like an assert but always enabled.
 #define check(cond) checkfunc(cond, #cond, __FILE__, __LINE__)
-void checkfunc(bool ok, const char *s, const char *file, int line) {
+void checkfunc(bool ok, const char* s, const char* file, int line) {
   if (ok) return;
   printf("checkfail at %s %d %s\n", file, line, s);
   if (errno != 0) printf("errno: %m\n");
   exit(1);
 }
 
-int errhandler(Display *dpy, XErrorEvent *ev) {
+int errhandler(Display* dpy, XErrorEvent* ev) {
   char buf[100];
   XGetErrorText(dpy, ev->error_code, buf, 100);
   printf("xlib error: %s\n", buf);
   exit(1);
 }
 
-Display *dpy;
+Display* dpy;
 Window root, window;
 Cursor cursor;
 
@@ -91,7 +91,7 @@ void lock(void) {
   XFlush(dpy);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   if (argc != 2) {
     puts("usage: x11lock [start|stop|activate]");
     puts("");
@@ -111,9 +111,9 @@ int main(int argc, char **argv) {
   int n;
   check((n = readlink("/proc/self/exe", exename, sizeof(exename) - 1)) > 0);
   exename[n] = 0;
-  DIR *dirp = opendir("/proc");
+  DIR* dirp = opendir("/proc");
   check(dirp != NULL);
-  struct dirent *de;
+  struct dirent* de;
   while (daemonpid == -1 && (de = readdir(dirp)) != NULL) {
     if (de->d_type != DT_DIR && de->d_type != DT_UNKNOWN) continue;
     int pid = -1;
