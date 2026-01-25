@@ -297,9 +297,10 @@ int main(int argc, char** argv) {
         const char* c;
         c = "amixer -M get Master | grep -o '[0-9]*%'";
         FILE* f = popen(c, "r");
-        CHECK(f != NULL);
-        CHECK(fscanf(f, "%d", &ns.volume) == 1);
-        pclose(f);
+        if (f != NULL) {
+          CHECK(fscanf(f, "%d", &ns.volume) == 1);
+          pclose(f);
+        }
         goto volume_done;
       }
       snd_mixer_selem_channel_id_t ch = SND_MIXER_SCHN_MONO;
