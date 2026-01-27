@@ -213,6 +213,7 @@ cat <<'eof'
 eof
 
 test -x /usr/bin/ibus && cat <<'eof'
-  exec --no-startup-id /usr/bin/ibus exit
+
+exec --no-startup-id sleep 1 && /usr/bin/ibus exit
 eof
 true  # mark script successful even on non-ibus machines
