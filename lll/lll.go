@@ -11,9 +11,11 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -49,12 +51,13 @@ func usage() {
 }
 
 // bridgeAddress reads local configuration.
+// Wraps a fs.ErrNotExist error if the file didn't exist.
 func bridgeAddress() (address, key string, err error) {
 	var hueAddress, hueKey string
 	cfgfile := filepath.Join(os.Getenv("HOME"), ".config/hue.cfg")
 	cfgBytes, err := os.ReadFile(cfgfile)
 	if err != nil {
-		return "", "", fmt.Errorf("huepush.ReadLocalConfiguration: %v", err)
+		return "", "", fmt.Errorf("huepush.ReadLocalConfiguration: %w", err)
 	}
 	for line := range bytes.Lines(cfgBytes) {
 		fields := strings.Fields(string(line))
@@ -131,6 +134,31 @@ func printDDCBrightness() error {
 	return nil
 }
 
+var maxWorkLaptopBrightness = 38787
+
+func printWorkLaptopBrightness() error {
+	rawdata, err := os.ReadFile("/sys/class/backlight/intel_backlight/brightness")
+	if err != nil {
+		// Probably not on the laptop.
+		return nil
+	}
+	var v int
+	if _, err := fmt.Fscan(bytes.NewReader(rawdata), &v); err != nil {
+		return fmt.Errorf("lll.ReadBrightnessFile: %v", err)
+	}
+	fmt.Printf("d %3d%%\n", v*100/maxWorkLaptopBrightness)
+	return nil
+}
+
+func setWorkLaptopBrightness(percent int) bool {
+	data := fmt.Sprintf("%d", percent*maxWorkLaptopBrightness/100)
+	if err := os.WriteFile("/sys/class/backlight/intel_backlight/brightness", []byte(data), 0644); err != nil {
+		// Probably not on the laptop.
+		return false
+	}
+	return true
+}
+
 func setBrightness(ctx context.Context, lamp byte, level int) error {
 	if level > 3 {
 		return fmt.Errorf("lll.TargetTooHigh got=%d max=%d", level, 3)
@@ -138,9 +166,13 @@ func setBrightness(ctx context.Context, lamp byte, level int) error {
 
 	// d means Display.
 	if lamp == 'd' {
-		levels := [...]int{0, 25, 75, 100}
-		if err := setDDCBrightness(levels[level]); err != nil {
-			return fmt.Errorf("lll.SetBrightness: %v", err)
+		workLaptopLevels := [...]int{1, 5, 32, 100}
+		if setWorkLaptopBrightness(workLaptopLevels[level]) {
+			return nil
+		}
+		monitorLevels := [...]int{0, 25, 75, 100}
+		if err := setDDCBrightness(monitorLevels[level]); err != nil {
+			return fmt.Errorf("lll.SetDDCBrightness: %v", err)
 		}
 		return nil
 	}
@@ -208,11 +240,17 @@ func jget(v any, path ...string) any {
 }
 
 func printBrightness(ctx context.Context) error {
+	if err := printWorkLaptopBrightness(); err != nil {
+		fmt.Printf("lll.PrintLaptopBrightness: %v\n", err)
+	}
 	if err := printDDCBrightness(); err != nil {
 		fmt.Printf("lll.PrintDDCBrightness: %v\n", err)
 	}
 
 	hueAddress, hueKey, err := bridgeAddress()
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("lll.BridgeAddressForPrint: %v", err)
 	}
@@ -275,12 +313,12 @@ func Run(ctx context.Context) error {
 		return nil
 	}
 
-	targetLamp := byte('o')
+	targetLamp := byte('d')
 	for _, arg := range flag.Args() {
 		for _, c := range arg {
 			if '0' <= c && c <= '9' {
 				if err := setBrightness(ctx, targetLamp, int(c-'0')); err != nil {
-					return fmt.Errorf("lll.SetBrightness lamp=%c level=%d: %v", err, targetLamp, int(c-'0'))
+					return fmt.Errorf("lll.SetBrightness lamp=%c level=%d: %v", targetLamp, int(c-'0'), err)
 				}
 			} else {
 				targetLamp = byte(c)
