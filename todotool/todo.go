@@ -329,7 +329,7 @@ func Run(ctx context.Context) error {
 			if len(cookies) == 0 {
 				return fmt.Errorf("todo.EmptyCookieFile file=%s", filepath.Join(os.Getenv("HOME"), ".config/.iio"))
 			}
-			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 			defer cancel()
 			request, err := http.NewRequestWithContext(ctx, "GET", "https://iio.ie/eventz", nil)
 			if err != nil {
