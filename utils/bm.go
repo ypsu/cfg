@@ -140,8 +140,22 @@ func handlePreview(w http.ResponseWriter, _ *http.Request) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name=color-scheme content='light dark'>
 <style>body{font-family:sans-serif}</style></head>
-<body><div id=hcontent>this needs javascript.</div>
+<body>
+<div id=hcontent>this needs javascript.</div>
+<button id=hcopybtn onclick=copy()>copy</button>
 <script>
+	function copy() {
+		let range = document.createRange()
+		range.selectNode(hcontent)
+		getSelection().addRange(range)
+		document.execCommand('copy')
+		hcopybtn.textContent = 'copied'
+		getSelection().empty()
+		setTimeout(() => {
+			hcopybtn.textContent = 'copy'
+		}, 2000)
+	}
+
 	let main = async _ => {
 		hcontent.innerText = "loading...";
 		let ts = "";
@@ -196,15 +210,10 @@ func readContent(fFlag, tFlag string) ([]byte, error) {
 				}
 				if len(item) > 0 {
 					curItem = string(item)
-					if curItem == tFlag {
-						todoContent.Write([]byte("# "))
-						todoContent.Write(line[1:])
-						todoContent.WriteByte('\n')
-						continue
-					}
+					continue
 				}
 			}
-			if curItem == tFlag {
+			if curItem == tFlag && todoContent.Len()+len(line) > 0 {
 				todoContent.Write(line)
 				todoContent.WriteByte('\n')
 			}
