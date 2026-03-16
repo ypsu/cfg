@@ -61,6 +61,7 @@ func run() error {
 	fsHandler := http.FileServer(http.Dir(""))
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%q from %s.", r.Method+" "+r.URL.Path, r.RemoteAddr)
+		w.Header().Set("Content-Security-Policy-Report-Only", "default-src 'self';")
 		fsHandler.ServeHTTP(w, r)
 	}
 	_, port, _ := strings.Cut(*flagAddr, ":")
