@@ -424,6 +424,7 @@ func Run(ctx context.Context) error {
 				} else if len(line) == 0 {
 					if title != "" {
 						title = strings.TrimPrefix(strings.TrimSpace(decodeRFC2047(title)), "Re: ")
+						title = strings.TrimPrefix(title, "RE: ")
 						v, ok := titles[title]
 						if !ok {
 							titles[title] = seen
