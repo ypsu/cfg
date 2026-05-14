@@ -1,3 +1,7 @@
+github.com/corbym/gocrest v1.1.1 h1:lry77EvxdkHVL9XaPf0uHTcRPZi9jOXvUbdxhV7djYc=
+github.com/corbym/gocrest v1.1.1/go.mod h1:vhNebfdBGx5l0Nh0OM/CvIVqGAnR9AAbI5qA9OxRUOU=
+github.com/nitram509/gofritz v0.2.1 h1:onJG8FZ6RtIz6+pbtkCn9Lf7JzhRXcZbD2Af2L9AmuY=
+github.com/nitram509/gofritz v0.2.1/go.mod h1:wdug2Cp8EQVNq1QihTqh+eqlRTuJmGzxnrsHVkRUNUg=
 github.com/ypsu/efftesting v0.250504.0 h1:9Enpg7xnjimJ7ibQOtC0ReW3Yyn0eQaLYWuR+MLtgi4=
 github.com/ypsu/efftesting v0.250504.0/go.mod h1:+D0EFyzp/rwQcPU2WeVqCbO3ZJ7+yEh/FR/ObIpkKk4=
 github.com/ypsu/gosuflow v0.250507.0 h1:VUwi6HyBQ55AiOKP86pOI51TEdnmf18ANsk/HULxaNg=

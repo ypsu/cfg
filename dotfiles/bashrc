@@ -1,6 +1,7 @@
 shopt -s checkwinsize
 shopt -s histappend
 unalias -a
+umask 022
 
 HISTCONTROL=erasedups
 PS1='\[\e[0m\]$ '

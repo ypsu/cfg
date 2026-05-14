@@ -22,6 +22,9 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/nitram509/gofritz/pkg/soap"
+	"github.com/nitram509/gofritz/pkg/tr064/lan"
 )
 
 func usage() {
@@ -457,6 +460,48 @@ func Run(ctx context.Context) error {
 				c.result <- ""
 			}
 		}()
+	}
+
+	fmt.Printf("checking net clients...")
+	netclientsReport, err := func() (string, error) {
+		configData, err := os.ReadFile(filepath.Join(os.Getenv("HOME"), ".config/netclients"))
+		if err != nil {
+			return "", fmt.Errorf("todotool.ReadNetclientsAllowlist: %v\n\n", err)
+		}
+		var cfg []string
+		for line := range strings.Lines(string(configData)) {
+			fields := strings.Fields(line)
+			if len(fields) == 0 || fields[0][0] == '#' {
+				continue
+			}
+			cfg = append(cfg, fields[0])
+		}
+		if len(cfg) < 3 {
+			return "", fmt.Errorf("todotool.CheckNetclientsAllowlistSize got=%d want=3+", len(cfg))
+		}
+		allowlist := make(map[string]bool, len(cfg)-3)
+		for _, c := range cfg[3:] {
+			allowlist[c] = true
+		}
+		session := soap.NewSession(cfg[0], cfg[1], cfg[2])
+		hosts, err := lan.XAvmGetHostList(session)
+		if err != nil {
+			return "", fmt.Errorf("todotool.GetNetclientList: %v", err)
+		}
+		report := &strings.Builder{}
+		for _, host := range hosts {
+			if !allowlist[host.HostName] {
+				fmt.Fprintf(report, "  NewHost name=%s active=%t ip=%s mac=%s\n", host.HostName, host.Active, host.IPAddress, host.MACAddress)
+			}
+		}
+		return report.String(), nil
+	}()
+	fmt.Printf("\r\033[K")
+	if err != nil {
+		fmt.Printf("netclients:\n  Error: %v\n\n", err)
+	}
+	if netclientsReport != "" {
+		fmt.Printf("netclients (clients missing from $HOME/.config/netclients):\n%s\n", netclientsReport)
 	}
 
 	fmt.Printf("checking blog eventz...")
