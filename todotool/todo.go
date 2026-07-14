@@ -490,7 +490,7 @@ func Run(ctx context.Context) error {
 		}
 		report := &strings.Builder{}
 		for _, host := range hosts {
-			if !allowlist[host.HostName] {
+			if !allowlist[host.HostName] && !allowlist[host.MACAddress] {
 				fmt.Fprintf(report, "  NewHost name=%s active=%t ip=%s mac=%s\n", host.HostName, host.Active, host.IPAddress, host.MACAddress)
 			}
 		}
