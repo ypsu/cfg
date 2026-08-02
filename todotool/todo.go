@@ -332,7 +332,6 @@ func Run(ctx context.Context) error {
 			if len(cookies) == 0 {
 				return fmt.Errorf("todo.EmptyCookieFile file=%s", filepath.Join(os.Getenv("HOME"), ".config/.iio"))
 			}
-			start := time.Now()
 			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 			request, err := http.NewRequestWithContext(ctx, "GET", "https://iio.ie/eventz", nil)
@@ -340,7 +339,6 @@ func Run(ctx context.Context) error {
 				return fmt.Errorf("todo.NewEventzRequest: %v", err)
 			}
 			request.AddCookie(&http.Cookie{Name: "session", Value: cookies[0]})
-			request.Header.Set("flyio-debug", "doit")
 			response, err := http.DefaultClient.Do(request)
 			if err != nil {
 				return fmt.Errorf("todo.DoEventzRequest: %v", err)
@@ -357,14 +355,7 @@ func Run(ctx context.Context) error {
 			}
 			lines := strings.Split(string(bytes.TrimSpace(body)), "\n")
 			if len(lines) == 2 {
-				now := time.Now()
-				if dur := now.Sub(start); dur > 2*time.Second {
-					// Dump debug info for slow requests.
-					// Remove if it isn't helpful.
-					eventzch <- fmt.Sprintf("todo.EventzStart: %s\ntodo.EventzDuration: %v\ntodo.EventzDebug (use AI for interpretation): %s\n\n", now.Format("2006-01-02.15:04:05"), dur, response.Header.Get("flyio-debug"))
-				} else {
-					eventzch <- ""
-				}
+				eventzch <- ""
 				return nil
 			}
 			eventzch <- fmt.Sprintf("todo.Eventz:\n  %s\n\n", html.UnescapeString(strings.Join(lines[1:len(lines)-1], "\n  ")))
