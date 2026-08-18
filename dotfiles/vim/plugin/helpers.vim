@@ -222,6 +222,8 @@ function! Format()
     let filter = 'prettier --print-width=160 --no-semi --stdin-filepath=' . l:tail
   elseif &filetype == 'odin'
     let filter = 'odinfmt -stdin'
+  elseif l:ext == 'sdin'
+    let filter = 'sdin format'
   elseif &filetype == 'rust'
     let filter = 'rustfmt'
   else
