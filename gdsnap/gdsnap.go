@@ -292,7 +292,7 @@ func watchdir(filech chan<- string) {
 		mask |= syscall.IN_ONLYDIR
 		var wd int
 		if wd, err = syscall.InotifyAddWatch(ifd, dirpath, mask); err != nil {
-			log.Fatal(err)
+			log.Fatalf("gdsnap.AddInotifyWatch dirpah=%s: %v", dirpath, err)
 		}
 		watches[wd] = dirpath
 
