@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -290,8 +291,11 @@ func watchdir(filech chan<- string) {
 		mask |= syscall.IN_DONT_FOLLOW
 		mask |= syscall.IN_EXCL_UNLINK
 		mask |= syscall.IN_ONLYDIR
-		var wd int
-		if wd, err = syscall.InotifyAddWatch(ifd, dirpath, mask); err != nil {
+		wd, err := syscall.InotifyAddWatch(ifd, dirpath, mask)
+		if errors.Is(err, os.ErrNotExist) && dirpath != *dirFlag {
+			return
+		}
+		if err != nil {
 			log.Fatalf("gdsnap.AddInotifyWatch dirpath=%s: %v", dirpath, err)
 		}
 		watches[wd] = dirpath
